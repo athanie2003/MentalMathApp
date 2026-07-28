@@ -48,11 +48,13 @@ function init() {
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch((err) => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('ServiceWorker registered cleanly with scope:', reg.scope);
+      })
+      .catch((err) => {
         console.log('ServiceWorker registration failed: ', err);
       });
-    });
   }
 }
 
