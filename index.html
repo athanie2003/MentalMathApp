@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Mental Math Master</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- MENU / SELECTION SCREEN -->
+    <div id="screen-menu" class="screen active">
+      <header class="app-header">
+        <div class="logo-group">
+          <div class="logo-icon">🧮</div>
+          <div>
+            <h1>Mental Math</h1>
+            <p class="subtitle">Train your brain speed</p>
+          </div>
+        </div>
+        <button id="btn-toggle-sound-menu" class="icon-btn" title="Toggle Sound">
+          <span class="sound-icon">🔊</span>
+        </button>
+      </header>
+
+      <main class="menu-content">
+        <!-- DIFFICULTY SELECTOR -->
+        <section class="section">
+          <label class="section-title">Difficulty Level</label>
+          <div class="difficulty-picker">
+            <button class="diff-btn" data-diff="easy">Easy</button>
+            <button class="diff-btn active" data-diff="medium">Medium</button>
+            <button class="diff-btn" data-diff="hard">Hard</button>
+          </div>
+        </section>
+
+        <!-- TOPIC CARDS -->
+        <section class="section">
+          <label class="section-title">Select Math Skill</label>
+          <div class="topics-grid">
+            <button class="topic-card active" data-topic="addition">
+              <div class="topic-badge addition-bg">+</div>
+              <div class="topic-info">
+                <h3>Addition</h3>
+                <p>Speed sums & combinations</p>
+              </div>
+            </button>
+
+            <button class="topic-card" data-topic="subtraction">
+              <div class="topic-badge subtraction-bg">−</div>
+              <div class="topic-info">
+                <h3>Subtraction</h3>
+                <p>Quick mental differences</p>
+              </div>
+            </button>
+
+            <button class="topic-card" data-topic="multiplication">
+              <div class="topic-badge multiplication-bg">×</div>
+              <div class="topic-info">
+                <h3>Multiplication</h3>
+                <p>Times tables & products</p>
+              </div>
+            </button>
+
+            <button class="topic-card" data-topic="division">
+              <div class="topic-badge division-bg">÷</div>
+              <div class="topic-info">
+                <h3>Division</h3>
+                <p>Quotients & clean decimals</p>
+              </div>
+            </button>
+
+            <button class="topic-card" data-topic="bedmas">
+              <div class="topic-badge bedmas-bg">()</div>
+              <div class="topic-info">
+                <h3>BEDMAS</h3>
+                <p>Brackets & Order of Ops</p>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- START PRACTICE BUTTON -->
+        <div class="action-bar">
+          <button id="btn-start-practice" class="btn-primary">
+            Start Practice ⚡
+          </button>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- PRACTICE / GAMEPLAY SCREEN -->
+    <div id="screen-game" class="screen">
+      <!-- TOP NAV BAR -->
+      <header class="game-header">
+        <button id="btn-exit-game" class="btn-exit">
+          <span class="exit-arrow">←</span> Exit
+        </button>
+
+        <div class="game-badge" id="game-topic-badge">Addition</div>
+
+        <div class="game-stats">
+          <div class="stat-pill lives-pill" id="lives-pill" title="Lives Remaining">
+            ❤️❤️❤️
+          </div>
+          <div class="stat-pill streak-pill" id="streak-pill" title="Current Score Streak">
+            🔥 <span id="streak-count">0</span>
+          </div>
+          <button id="btn-toggle-sound-game" class="icon-btn small-icon-btn">
+            <span class="sound-icon">🔊</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN PRACTICE CONTAINER -->
+      <main class="game-content">
+        <!-- QUESTION CARD -->
+        <div class="question-card" id="question-card">
+          <div class="expression-display" id="expression-display">12 + 15</div>
+
+          <!-- INPUT ANSWER DISPLAY -->
+          <div class="input-container" id="input-container">
+            <span class="input-placeholder" id="input-placeholder">Enter answer</span>
+            <span class="input-value" id="input-value"></span>
+            <span class="blinking-cursor"></span>
+          </div>
+        </div>
+
+        <!-- ON-SCREEN KEYPAD -->
+        <div class="keypad-container">
+          <div class="keypad-grid">
+            <button class="key-btn" data-key="7">7</button>
+            <button class="key-btn" data-key="8">8</button>
+            <button class="key-btn" data-key="9">9</button>
+            <button class="key-btn key-action" data-key="CLEAR">C</button>
+
+            <button class="key-btn" data-key="4">4</button>
+            <button class="key-btn" data-key="5">5</button>
+            <button class="key-btn" data-key="6">6</button>
+            <button class="key-btn key-action" data-key="BACKSPACE">⌫</button>
+
+            <button class="key-btn" data-key="1">1</button>
+            <button class="key-btn" data-key="2">2</button>
+            <button class="key-btn" data-key="3">3</button>
+            <button class="key-btn key-action" data-key="SIGN">±</button>
+
+            <button class="key-btn" data-key="0">0</button>
+            <button class="key-btn" data-key=".">.</button>
+            <button class="key-btn key-submit" id="btn-submit" data-key="ENTER">
+              <span>Submit</span> ✓
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- EXPLANATION / ANSWER REVEAL MODAL -->
+    <div id="modal-failed" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-icon error-icon" id="modal-icon-el">❌</div>
+        <h2 id="modal-title-el">Incorrect</h2>
+        
+        <div class="answer-box">
+          <div class="ans-label">Correct Answer</div>
+          <div class="ans-val" id="modal-correct-ans">0</div>
+        </div>
+
+        <div class="explanation-box" id="modal-explanation-box">
+          <p id="modal-explanation-text">Solution details will appear here.</p>
+        </div>
+
+        <button id="btn-modal-ok" class="btn-primary full-width">
+          OK / Next Question →
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
