@@ -505,13 +505,19 @@ h1 {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: transform 0.05s ease, background-color 0.1s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+.key-btn * {
+  pointer-events: none;
 }
 
 .key-btn:active {
   background: var(--key-active);
-  transform: scale(0.94);
+  transform: scale(0.92);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 

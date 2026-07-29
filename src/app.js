@@ -103,12 +103,22 @@ function setupEventListeners() {
     }
   });
 
-  // Keypad clicks
+  // Keypad touch & click listeners (Instant zero-delay response for rapid typing)
   document.querySelectorAll('.key-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    let lastHandledTime = 0;
+
+    const handleBtnPress = (e) => {
+      const now = Date.now();
+      // Deduplicate rapid dual events (pointerdown + click fallback) within 50ms
+      if (now - lastHandledTime < 50) return;
+      lastHandledTime = now;
+
       const key = btn.dataset.key;
       handleKeyPress(key);
-    });
+    };
+
+    btn.addEventListener('pointerdown', handleBtnPress);
+    btn.addEventListener('click', handleBtnPress);
   });
 
   // Keyboard support for physical keyboards
