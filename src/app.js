@@ -103,22 +103,28 @@ function setupEventListeners() {
     }
   });
 
-  // Keypad touch & click listeners (Instant zero-delay response for rapid typing)
+  // Version badge setup
+  const versionBadge = document.getElementById('version-badge');
+  const APP_VERSION = 'v1.0.3';
+  const SHOW_VERSION = true; // Change to false to hide version badge anytime
+  if (versionBadge) {
+    versionBadge.textContent = APP_VERSION;
+    if (!SHOW_VERSION) {
+      versionBadge.classList.add('hidden');
+    }
+  }
+
+  // Keypad press listener (Triggers ONCE on press; e.preventDefault cancels release click)
   document.querySelectorAll('.key-btn').forEach(btn => {
-    let lastHandledTime = 0;
-
-    const handleBtnPress = (e) => {
-      const now = Date.now();
-      // Deduplicate rapid dual events (pointerdown + click fallback) within 50ms
-      if (now - lastHandledTime < 50) return;
-      lastHandledTime = now;
-
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); // Cancels duplicate synthetic click on release
       const key = btn.dataset.key;
       handleKeyPress(key);
-    };
+    });
 
-    btn.addEventListener('pointerdown', handleBtnPress);
-    btn.addEventListener('click', handleBtnPress);
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+    });
   });
 
   // Keyboard support for physical keyboards
