@@ -4,19 +4,29 @@ import { calculateChallengeScore } from './scoringEngine.js';
 import { TIMING_CONFIG } from './gameConfig.js';
 import { sounds } from './audio.js';
 
-// DOM Elements
+// DOM Elements & Screens
 const screenMenu = document.getElementById('screen-menu');
+const screenConfig = document.getElementById('screen-config');
 const screenGame = document.getElementById('screen-game');
 
 const modeBtns = document.querySelectorAll('.mode-btn');
-const sectionDifficulty = document.getElementById('section-difficulty');
-const cardMixTopic = document.getElementById('card-mix-topic');
-const btnStartText = document.getElementById('btn-start-text');
-
-const toggleDecimals = document.getElementById('toggle-decimals');
 const topicCards = document.querySelectorAll('.topic-card');
+const cardMixTopic = document.getElementById('card-mix-topic');
+
+const btnGotoConfig = document.getElementById('btn-goto-config');
+const btnBackToMenu = document.getElementById('btn-back-to-menu');
+
+const sectionDifficulty = document.getElementById('section-difficulty');
 const diffBtns = document.querySelectorAll('.diff-btn');
+
+const typeChecks = document.querySelectorAll('.type-check');
+const typeIntegers = document.getElementById('type-integers');
+const typeDecimals = document.getElementById('type-decimals');
+const typeNegatives = document.getElementById('type-negatives');
+const typeAll = document.getElementById('type-all');
+
 const btnStartPractice = document.getElementById('btn-start-practice');
+const btnStartText = document.getElementById('btn-start-text');
 
 const btnExitGame = document.getElementById('btn-exit-game');
 const gameModeBadge = document.getElementById('game-mode-badge');
@@ -28,6 +38,7 @@ const streakCountEl = document.getElementById('streak-count');
 const livesPillEl = document.getElementById('lives-pill');
 
 const btnToggleSoundMenu = document.getElementById('btn-toggle-sound-menu');
+const btnToggleSoundConfig = document.getElementById('btn-toggle-sound-config');
 const btnToggleSoundGame = document.getElementById('btn-toggle-sound-game');
 const soundIcons = document.querySelectorAll('.sound-icon');
 
@@ -50,7 +61,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
-  allowDecimals: false,
+  selectedTypes: ['integers'], // ['integers', 'decimals', 'negatives']
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -62,7 +73,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.2.0';
+const APP_VERSION = 'v1.3.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -106,14 +117,6 @@ function setupEventListeners() {
     });
   });
 
-  // Decimals Toggle
-  if (toggleDecimals) {
-    toggleDecimals.addEventListener('change', () => {
-      sounds.playClick();
-      state.allowDecimals = toggleDecimals.checked;
-    });
-  }
-
   // Topic selection
   topicCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -123,6 +126,24 @@ function setupEventListeners() {
       state.selectedTopic = card.dataset.topic;
     });
   });
+
+  // Navigation: Step 1 -> Step 2 (Goto Config)
+  if (btnGotoConfig) {
+    btnGotoConfig.addEventListener('click', () => {
+      sounds.playClick();
+      screenMenu.classList.remove('active');
+      screenConfig.classList.add('active');
+    });
+  }
+
+  // Navigation: Step 2 -> Step 1 (Back to Menu)
+  if (btnBackToMenu) {
+    btnBackToMenu.addEventListener('click', () => {
+      sounds.playClick();
+      screenConfig.classList.remove('active');
+      screenMenu.classList.add('active');
+    });
+  }
 
   // Difficulty selection
   diffBtns.forEach(btn => {
@@ -134,20 +155,23 @@ function setupEventListeners() {
     });
   });
 
-  // Start practice / challenge button
+  // Number Types Checkboxes (Integers, Decimals, Negatives, All)
+  setupCheckboxListeners();
+
+  // Start Session Button (Step 2 -> Game)
   btnStartPractice.addEventListener('click', () => {
     sounds.playClick();
     startSession();
   });
 
-  // Exit button
+  // Exit button (Game -> Menu)
   btnExitGame.addEventListener('click', () => {
     sounds.playClick();
     exitToMenu();
   });
 
   // Mute toggles
-  [btnToggleSoundMenu, btnToggleSoundGame].forEach(btn => {
+  [btnToggleSoundMenu, btnToggleSoundConfig, btnToggleSoundGame].forEach(btn => {
     if (btn) {
       btn.addEventListener('click', () => {
         state.isMuted = sounds.toggleMute();
@@ -198,6 +222,52 @@ function setupEventListeners() {
   });
 }
 
+function setupCheckboxListeners() {
+  if (!typeAll) return;
+
+  typeAll.addEventListener('change', () => {
+    sounds.playClick();
+    const isChecked = typeAll.checked;
+    typeIntegers.checked = isChecked;
+    typeDecimals.checked = isChecked;
+    typeNegatives.checked = isChecked;
+    updateSelectedTypes();
+  });
+
+  [typeIntegers, typeDecimals, typeNegatives].forEach(chk => {
+    if (chk) {
+      chk.addEventListener('change', () => {
+        sounds.playClick();
+        if (!chk.checked) {
+          typeAll.checked = false;
+        } else if (typeIntegers.checked && typeDecimals.checked && typeNegatives.checked) {
+          typeAll.checked = true;
+        }
+        updateSelectedTypes();
+      });
+    }
+  });
+}
+
+function updateSelectedTypes() {
+  const selected = [];
+  if (typeAll.checked) {
+    selected.push('all');
+  } else {
+    if (typeIntegers.checked) selected.push('integers');
+    if (typeDecimals.checked) selected.push('decimals');
+    if (typeNegatives.checked) selected.push('negatives');
+  }
+
+  // Ensure at least 1 type is selected
+  if (selected.length === 0) {
+    typeIntegers.checked = true;
+    selected.push('integers');
+  }
+
+  state.selectedTypes = selected;
+}
+
 function updateMenuUIForMode() {
   if (state.mode === 'challenge') {
     sectionDifficulty.classList.add('hidden');
@@ -220,6 +290,8 @@ function updateMenuUIForMode() {
 
 // SESSION CONTROL
 function startSession() {
+  updateSelectedTypes();
+
   state.streak = 0;
   state.lives = 3;
   state.totalScore = 0;
@@ -240,7 +312,7 @@ function startSession() {
     timerBarWrapper.classList.add('hidden');
   }
 
-  screenMenu.classList.remove('active');
+  screenConfig.classList.remove('active');
   screenGame.classList.add('active');
 
   loadNextQuestion();
@@ -267,7 +339,7 @@ function loadNextQuestion() {
 
   state.userAnswerInput = '';
   const diffToUse = state.mode === 'challenge' ? 'random' : state.selectedDifficulty;
-  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse, state.allowDecimals);
+  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse, state.selectedTypes);
 
   // Update Topic Badge Title
   const topicTitles = {

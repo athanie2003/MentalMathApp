@@ -15,7 +15,8 @@
 </head>
 <body>
   <div id="app">
-    <!-- MENU / SELECTION SCREEN -->
+    
+    <!-- STEP 1: MODE & TOPIC SELECTION SCREEN -->
     <div id="screen-menu" class="screen active">
       <header class="app-header">
         <div class="logo-group">
@@ -23,7 +24,7 @@
           <div>
             <div class="title-with-version">
               <h1>Mental Math</h1>
-              <span class="version-badge" id="version-badge">v1.1.0</span>
+              <span class="version-badge" id="version-badge">v1.3.0</span>
             </div>
             <p class="subtitle">Train your brain speed</p>
           </div>
@@ -36,7 +37,7 @@
       <main class="menu-content">
         <!-- MODE SELECTOR TABS -->
         <section class="section">
-          <label class="section-title">Select Mode</label>
+          <label class="section-title">Step 1: Select Mode</label>
           <div class="mode-picker">
             <button class="mode-btn active" data-mode="practice">
               <span>🎯 Practice</span>
@@ -44,30 +45,6 @@
             <button class="mode-btn" data-mode="challenge">
               <span>🏆 Challenge</span>
             </button>
-          </div>
-        </section>
-
-        <!-- DIFFICULTY SELECTOR (PRACTICE MODE ONLY) -->
-        <section class="section" id="section-difficulty">
-          <label class="section-title">Difficulty Level</label>
-          <div class="difficulty-picker">
-            <button class="diff-btn" data-diff="easy">Easy</button>
-            <button class="diff-btn active" data-diff="medium">Medium</button>
-            <button class="diff-btn" data-diff="hard">Hard</button>
-          </div>
-        </section>
-
-        <!-- DECIMALS TOGGLE -->
-        <section class="section">
-          <div class="toggle-card">
-            <div class="toggle-info">
-              <span class="toggle-title">Include Decimals 🔢</span>
-              <span class="toggle-sub">Medium = 1 decimal, Hard = 2 decimals</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="toggle-decimals">
-              <span class="slider round"></span>
-            </label>
           </div>
         </section>
 
@@ -126,17 +103,90 @@
           </div>
         </section>
 
-        <!-- START PRACTICE / CHALLENGE BUTTON -->
+        <!-- NEXT TO CONFIG BUTTON -->
+        <div class="action-bar">
+          <button id="btn-goto-config" class="btn-primary">
+            Next: Configure Session →
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- STEP 2: CONFIGURATION & NUMBER TYPES SCREEN -->
+    <div id="screen-config" class="screen">
+      <header class="app-header">
+        <button id="btn-back-to-menu" class="btn-exit">
+          <span class="exit-arrow">←</span> Back
+        </button>
+        <h2 class="config-header-title">Configure Session</h2>
+        <button id="btn-toggle-sound-config" class="icon-btn small-icon-btn" title="Toggle Sound">
+          <span class="sound-icon">🔊</span>
+        </button>
+      </header>
+
+      <main class="menu-content">
+        <!-- DIFFICULTY SELECTOR (PRACTICE MODE ONLY) -->
+        <section class="section" id="section-difficulty">
+          <label class="section-title">Difficulty Level</label>
+          <div class="difficulty-picker">
+            <button class="diff-btn" data-diff="easy">Easy</button>
+            <button class="diff-btn active" data-diff="medium">Medium</button>
+            <button class="diff-btn" data-diff="hard">Hard</button>
+          </div>
+        </section>
+
+        <!-- NUMBER TYPES CHECKBOXES -->
+        <section class="section">
+          <label class="section-title">Select Number Types (Choose any)</label>
+          <div class="checkboxes-grid">
+            <label class="check-card">
+              <input type="checkbox" id="type-integers" class="type-check" value="integers" checked />
+              <span class="check-box-custom"></span>
+              <div class="check-info">
+                <span class="check-title">🔢 Integers</span>
+                <span class="check-desc">Positive whole numbers</span>
+              </div>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" id="type-decimals" class="type-check" value="decimals" />
+              <span class="check-box-custom"></span>
+              <div class="check-info">
+                <span class="check-title">💡 Decimals</span>
+                <span class="check-desc">Medium = 1 dec, Hard = 2 dec</span>
+              </div>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" id="type-negatives" class="type-check" value="negatives" />
+              <span class="check-box-custom"></span>
+              <div class="check-info">
+                <span class="check-title">➖ Negatives</span>
+                <span class="check-desc">Signed negative numbers</span>
+              </div>
+            </label>
+
+            <label class="check-card check-all-card">
+              <input type="checkbox" id="type-all" class="type-check" value="all" />
+              <span class="check-box-custom"></span>
+              <div class="check-info">
+                <span class="check-title">🌟 All Types</span>
+                <span class="check-desc">Mix Integers, Decimals & Negatives</span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- START SESSION BUTTON -->
         <div class="action-bar">
           <button id="btn-start-practice" class="btn-primary">
             <span id="btn-start-text">Start Practice ⚡</span>
           </button>
         </div>
-
       </main>
     </div>
 
-    <!-- PRACTICE / GAMEPLAY SCREEN -->
+    <!-- GAMEPLAY SCREEN -->
     <div id="screen-game" class="screen">
       <!-- TOP NAV BAR -->
       <header class="game-header">
