@@ -70,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.3.2';
+const APP_VERSION = 'v1.3.3';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
