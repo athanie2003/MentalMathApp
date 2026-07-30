@@ -70,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.4.1';
+const APP_VERSION = 'v1.5.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -320,6 +320,7 @@ function loadNextQuestion() {
     multiplication: 'Multiplication',
     division: 'Division',
     bedmas: 'BEDMAS',
+    percentage: 'Percentage',
     mix: 'Mix All'
   };
   

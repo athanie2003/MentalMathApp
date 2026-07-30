@@ -1,4 +1,4 @@
-// Math Question Generator Engine for Addition, Subtraction, Multiplication, Division, and BEDMAS
+// Math Question Generator Engine for Addition, Subtraction, Multiplication, Division, BEDMAS, and Percentage
 import { ALL_CATEGORIES } from './gameConfig.js';
 
 function randomInt(min, max) {
@@ -12,7 +12,7 @@ function roundToDecimals(num, decimals = 2) {
 
 /**
  * Main Question Generator
- * @param {string} topic - 'addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'mix'
+ * @param {string} topic - 'addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage', 'mix'
  * @param {string} difficulty - 'easy', 'medium', 'hard', 'random'
  * @param {string[]} numberTypes - Array of selected types: ['integers', 'decimals', 'negatives'] or ['all']
  */
@@ -54,6 +54,8 @@ export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['i
       return generateDivision(targetDifficulty, chosenType);
     case 'bedmas':
       return generateBEDMAS(targetDifficulty, chosenType);
+    case 'percentage':
+      return generatePercentage(targetDifficulty, chosenType);
     default:
       return generateAddition(targetDifficulty, chosenType);
   }
@@ -402,5 +404,43 @@ function generateBEDMAS(difficulty, chosenType) {
     rawTopic: 'bedmas',
     difficulty: difficulty,
     hint: selected.explanation || 'Follow Order of Operations: Brackets, Exponents, Division/Multiplication, Addition/Subtraction.'
+  };
+}
+
+function generatePercentage(difficulty, chosenType) {
+  let percent, baseNum, answer;
+
+  if (difficulty === 'easy') {
+    const easyPercents = [10, 20, 25, 50, 100];
+    percent = easyPercents[Math.floor(Math.random() * easyPercents.length)];
+    const bases = [10, 20, 40, 50, 60, 80, 100, 120, 150, 200, 400];
+    baseNum = bases[Math.floor(Math.random() * bases.length)];
+    
+    // Adjust baseNum so percent * baseNum / 100 yields an integer
+    if (percent === 25 && baseNum % 4 !== 0) baseNum = randomInt(1, 20) * 4;
+    if (percent === 50 && baseNum % 2 !== 0) baseNum = randomInt(1, 25) * 2;
+    if ((percent === 10 || percent === 20) && baseNum % 10 !== 0) baseNum = randomInt(1, 25) * 10;
+    
+    answer = roundToDecimals((percent * baseNum) / 100, 2);
+  } else if (difficulty === 'medium') {
+    const medPercents = [5, 10, 15, 20, 25, 30, 40, 50, 75];
+    percent = medPercents[Math.floor(Math.random() * medPercents.length)];
+    baseNum = randomInt(2, 40) * 5;
+    answer = roundToDecimals((percent * baseNum) / 100, 2);
+  } else {
+    // Hard difficulty -> results in up to 2 decimal places
+    const hardPercents = [3, 7, 12, 14, 15, 18, 22, 35, 45, 65, 85];
+    percent = hardPercents[Math.floor(Math.random() * hardPercents.length)];
+    baseNum = randomInt(12, 250);
+    answer = roundToDecimals((percent * baseNum) / 100, 2);
+  }
+
+  return {
+    expression: `${percent}% of ${baseNum}`,
+    answer: answer,
+    topic: 'Percentage',
+    rawTopic: 'percentage',
+    difficulty: difficulty,
+    hint: `Calculate ${percent}% of ${baseNum}. Hint: ${percent}% = ${percent}/100.`
   };
 }
