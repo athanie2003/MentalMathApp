@@ -55,7 +55,7 @@ export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['i
     case 'bedmas':
       return generateBEDMAS(targetDifficulty, chosenType);
     case 'percentage':
-      return generatePercentage(targetDifficulty, chosenType);
+      return generatePercentage(targetDifficulty, activeTypes);
     default:
       return generateAddition(targetDifficulty, chosenType);
   }
@@ -407,30 +407,51 @@ function generateBEDMAS(difficulty, chosenType) {
   };
 }
 
-function generatePercentage(difficulty, chosenType) {
-  let percent, baseNum, answer;
+function generatePercentage(difficulty, activeTypes = []) {
+  const allowDecimals = activeTypes.includes('decimals');
+  const allowOver100 = activeTypes.includes('over100');
 
+  let percentPool = [];
   if (difficulty === 'easy') {
-    const easyPercents = [10, 20, 25, 50, 100];
-    percent = easyPercents[Math.floor(Math.random() * easyPercents.length)];
-    const bases = [10, 20, 40, 50, 60, 80, 100, 120, 150, 200, 400];
-    baseNum = bases[Math.floor(Math.random() * bases.length)];
-    
-    // Adjust baseNum so percent * baseNum / 100 yields an integer
-    if (percent === 25 && baseNum % 4 !== 0) baseNum = randomInt(1, 20) * 4;
-    if (percent === 50 && baseNum % 2 !== 0) baseNum = randomInt(1, 25) * 2;
-    if ((percent === 10 || percent === 20) && baseNum % 10 !== 0) baseNum = randomInt(1, 25) * 10;
-    
-    answer = roundToDecimals((percent * baseNum) / 100, 2);
+    percentPool = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 25, 75];
+    if (allowOver100) {
+      percentPool.push(110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 125, 175);
+    }
   } else if (difficulty === 'medium') {
-    const medPercents = [5, 10, 15, 20, 25, 30, 40, 50, 75];
-    percent = medPercents[Math.floor(Math.random() * medPercents.length)];
-    baseNum = randomInt(2, 40) * 5;
-    answer = roundToDecimals((percent * baseNum) / 100, 2);
+    percentPool = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 75, 80, 85, 90, 95, 100];
+    if (allowOver100) {
+      percentPool.push(105, 115, 120, 125, 135, 145, 150, 155, 165, 175, 185, 195, 200);
+    }
   } else {
-    // Hard difficulty -> results in up to 2 decimal places
-    const hardPercents = [3, 7, 12, 14, 15, 18, 22, 35, 45, 65, 85];
-    percent = hardPercents[Math.floor(Math.random() * hardPercents.length)];
+    // Hard difficulty
+    percentPool = [3, 7, 12, 14, 15, 18, 22, 28, 33, 37, 42, 45, 63, 67, 72, 84, 88, 93];
+    if (allowOver100) {
+      percentPool.push(103, 112, 118, 127, 135, 138, 144, 156, 162, 178, 189, 194);
+    }
+  }
+
+  const percent = percentPool[Math.floor(Math.random() * percentPool.length)];
+  let baseNum, answer;
+
+  if (!allowDecimals) {
+    // Whole numbers only (integers)
+    let step = 10;
+    if (percent % 100 === 0) step = 1;
+    else if (percent % 50 === 0) step = 2;
+    else if (percent % 25 === 0) step = 4;
+    else if (percent % 20 === 0) step = 5;
+    else if (percent % 10 === 0) step = 10;
+    else if (percent % 5 === 0) step = 20;
+    else step = 100;
+
+    baseNum = randomInt(1, 25) * step;
+    answer = Math.round((percent * baseNum) / 100);
+  } else if (difficulty === 'medium') {
+    // Medium with decimals -> up to 1 decimal place
+    baseNum = randomInt(3, 45) * 2;
+    answer = roundToDecimals((percent * baseNum) / 100, 1);
+  } else {
+    // Hard with decimals -> up to 2 decimal places
     baseNum = randomInt(12, 250);
     answer = roundToDecimals((percent * baseNum) / 100, 2);
   }

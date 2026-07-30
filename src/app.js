@@ -20,7 +20,8 @@ const sectionDifficulty = document.getElementById('section-difficulty');
 const diffBtns = document.querySelectorAll('.diff-btn');
 
 const typeDecimals = document.getElementById('type-decimals');
-const typeNegatives = document.getElementById('type-negatives');
+const typeOpt2 = document.getElementById('type-opt2');
+const titleOpt2 = document.getElementById('title-opt-2');
 
 const btnStartPractice = document.getElementById('btn-start-practice');
 const btnStartText = document.getElementById('btn-start-text');
@@ -58,7 +59,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
-  selectedTypes: [], // optional add-ons: 'decimals', 'negatives'
+  selectedTypes: [], // optional add-ons: 'decimals', 'negatives', 'over100'
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -70,7 +71,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.5.0';
+const APP_VERSION = 'v1.5.1';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -128,6 +129,7 @@ function setupEventListeners() {
   if (btnGotoConfig) {
     btnGotoConfig.addEventListener('click', () => {
       sounds.playClick();
+      updateStep2Options();
       screenMenu.classList.remove('active');
       screenConfig.classList.add('active');
     });
@@ -152,7 +154,7 @@ function setupEventListeners() {
     });
   });
 
-  // Number Types Checkboxes (Decimals & Negatives)
+  // Number Types Checkboxes
   setupCheckboxListeners();
 
   // Start Session Button (Step 2 -> Game)
@@ -219,8 +221,17 @@ function setupEventListeners() {
   });
 }
 
+function updateStep2Options() {
+  if (!titleOpt2) return;
+  if (state.selectedTopic === 'percentage') {
+    titleOpt2.textContent = '📈 Include Over 100%';
+  } else {
+    titleOpt2.textContent = '➖ Include Negative Numbers';
+  }
+}
+
 function setupCheckboxListeners() {
-  [typeDecimals, typeNegatives].forEach(chk => {
+  [typeDecimals, typeOpt2].forEach(chk => {
     if (chk) {
       chk.addEventListener('change', () => {
         sounds.playClick();
@@ -233,7 +244,13 @@ function setupCheckboxListeners() {
 function updateSelectedTypes() {
   const selected = [];
   if (typeDecimals && typeDecimals.checked) selected.push('decimals');
-  if (typeNegatives && typeNegatives.checked) selected.push('negatives');
+  if (typeOpt2 && typeOpt2.checked) {
+    if (state.selectedTopic === 'percentage') {
+      selected.push('over100');
+    } else {
+      selected.push('negatives');
+    }
+  }
   state.selectedTypes = selected;
 }
 
