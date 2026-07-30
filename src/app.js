@@ -19,11 +19,8 @@ const btnBackToMenu = document.getElementById('btn-back-to-menu');
 const sectionDifficulty = document.getElementById('section-difficulty');
 const diffBtns = document.querySelectorAll('.diff-btn');
 
-const typeChecks = document.querySelectorAll('.type-check');
-const typeIntegers = document.getElementById('type-integers');
 const typeDecimals = document.getElementById('type-decimals');
 const typeNegatives = document.getElementById('type-negatives');
-const typeAll = document.getElementById('type-all');
 
 const btnStartPractice = document.getElementById('btn-start-practice');
 const btnStartText = document.getElementById('btn-start-text');
@@ -61,7 +58,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
-  selectedTypes: ['integers'], // ['integers', 'decimals', 'negatives']
+  selectedTypes: [], // optional add-ons: 'decimals', 'negatives'
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -73,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.3.0';
+const APP_VERSION = 'v1.3.1';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -155,7 +152,7 @@ function setupEventListeners() {
     });
   });
 
-  // Number Types Checkboxes (Integers, Decimals, Negatives, All)
+  // Number Types Checkboxes (Decimals & Negatives)
   setupCheckboxListeners();
 
   // Start Session Button (Step 2 -> Game)
@@ -223,26 +220,10 @@ function setupEventListeners() {
 }
 
 function setupCheckboxListeners() {
-  if (!typeAll) return;
-
-  typeAll.addEventListener('change', () => {
-    sounds.playClick();
-    const isChecked = typeAll.checked;
-    typeIntegers.checked = isChecked;
-    typeDecimals.checked = isChecked;
-    typeNegatives.checked = isChecked;
-    updateSelectedTypes();
-  });
-
-  [typeIntegers, typeDecimals, typeNegatives].forEach(chk => {
+  [typeDecimals, typeNegatives].forEach(chk => {
     if (chk) {
       chk.addEventListener('change', () => {
         sounds.playClick();
-        if (!chk.checked) {
-          typeAll.checked = false;
-        } else if (typeIntegers.checked && typeDecimals.checked && typeNegatives.checked) {
-          typeAll.checked = true;
-        }
         updateSelectedTypes();
       });
     }
@@ -251,20 +232,8 @@ function setupCheckboxListeners() {
 
 function updateSelectedTypes() {
   const selected = [];
-  if (typeAll.checked) {
-    selected.push('all');
-  } else {
-    if (typeIntegers.checked) selected.push('integers');
-    if (typeDecimals.checked) selected.push('decimals');
-    if (typeNegatives.checked) selected.push('negatives');
-  }
-
-  // Ensure at least 1 type is selected
-  if (selected.length === 0) {
-    typeIntegers.checked = true;
-    selected.push('integers');
-  }
-
+  if (typeDecimals && typeDecimals.checked) selected.push('decimals');
+  if (typeNegatives && typeNegatives.checked) selected.push('negatives');
   state.selectedTypes = selected;
 }
 
@@ -339,7 +308,10 @@ function loadNextQuestion() {
 
   state.userAnswerInput = '';
   const diffToUse = state.mode === 'challenge' ? 'random' : state.selectedDifficulty;
-  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse, state.selectedTypes);
+
+  // Pass active number type choices into generator
+  const typesToPass = state.selectedTypes.length > 0 ? state.selectedTypes : ['integers'];
+  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse, typesToPass);
 
   // Update Topic Badge Title
   const topicTitles = {

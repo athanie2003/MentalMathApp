@@ -24,7 +24,7 @@
           <div>
             <div class="title-with-version">
               <h1>Mental Math</h1>
-              <span class="version-badge" id="version-badge">v1.3.0</span>
+              <span class="version-badge" id="version-badge">v1.3.1</span>
             </div>
             <p class="subtitle">Train your brain speed</p>
           </div>
@@ -48,10 +48,10 @@
           </div>
         </section>
 
-        <!-- TOPIC CARDS -->
-        <section class="section">
+        <!-- TOPIC CARDS SECTION (SCROLLABLE GRID) -->
+        <section class="section section-topics">
           <label class="section-title">Select Math Skill</label>
-          <div class="topics-grid">
+          <div class="topics-grid scrollable-topics">
             <button class="topic-card active" data-topic="addition">
               <div class="topic-badge addition-bg">+</div>
               <div class="topic-info">
@@ -103,10 +103,10 @@
           </div>
         </section>
 
-        <!-- NEXT TO CONFIG BUTTON -->
+        <!-- NEXT BUTTON -->
         <div class="action-bar">
           <button id="btn-goto-config" class="btn-primary">
-            Next: Configure Session →
+            Next →
           </button>
         </div>
       </main>
@@ -137,23 +137,14 @@
 
         <!-- NUMBER TYPES CHECKBOXES -->
         <section class="section">
-          <label class="section-title">Select Number Types (Choose any)</label>
+          <label class="section-title">Optional Number Types (Default = Whole Numbers)</label>
           <div class="checkboxes-grid">
-            <label class="check-card">
-              <input type="checkbox" id="type-integers" class="type-check" value="integers" checked />
-              <span class="check-box-custom"></span>
-              <div class="check-info">
-                <span class="check-title">🔢 Integers</span>
-                <span class="check-desc">Positive whole numbers</span>
-              </div>
-            </label>
-
             <label class="check-card">
               <input type="checkbox" id="type-decimals" class="type-check" value="decimals" />
               <span class="check-box-custom"></span>
               <div class="check-info">
-                <span class="check-title">💡 Decimals</span>
-                <span class="check-desc">Medium = 1 dec, Hard = 2 dec</span>
+                <span class="check-title">💡 Include Decimals</span>
+                <span class="check-desc">Medium = 1 decimal, Hard = 2 decimals</span>
               </div>
             </label>
 
@@ -161,17 +152,8 @@
               <input type="checkbox" id="type-negatives" class="type-check" value="negatives" />
               <span class="check-box-custom"></span>
               <div class="check-info">
-                <span class="check-title">➖ Negatives</span>
-                <span class="check-desc">Signed negative numbers</span>
-              </div>
-            </label>
-
-            <label class="check-card check-all-card">
-              <input type="checkbox" id="type-all" class="type-check" value="all" />
-              <span class="check-box-custom"></span>
-              <div class="check-info">
-                <span class="check-title">🌟 All Types</span>
-                <span class="check-desc">Mix Integers, Decimals & Negatives</span>
+                <span class="check-title">➖ Include Negative Numbers</span>
+                <span class="check-desc">Signed numbers (e.g. -5 + 8 or 4 × -3)</span>
               </div>
             </label>
           </div>
