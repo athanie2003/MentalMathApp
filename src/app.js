@@ -70,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.4.0';
+const APP_VERSION = 'v1.4.1';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -380,8 +380,18 @@ function handleKeyPress(key) {
   sounds.playTap();
 
   if (key >= '0' && key <= '9') {
-    if (state.userAnswerInput.length < 9) {
-      state.userAnswerInput += key;
+    if (state.userAnswerInput === '0') {
+      if (key !== '0') {
+        state.userAnswerInput = key;
+      }
+    } else if (state.userAnswerInput === '-0') {
+      if (key !== '0') {
+        state.userAnswerInput = '-' + key;
+      }
+    } else {
+      if (state.userAnswerInput.length < 9) {
+        state.userAnswerInput += key;
+      }
     }
   } else if (key === '.') {
     if (!state.userAnswerInput.includes('.')) {
