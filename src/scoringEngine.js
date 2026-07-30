@@ -1,7 +1,12 @@
-import { TIMING_CONFIG, SCORING_CONFIG } from './gameConfig.js';
+import { getQuestionTiming, getBasePoints, SCORING_CONFIG } from './gameConfig.js';
 
 /**
- * Calculates score for a correct answer in Challenge Mode based on speed and streak.
+ * Calculates score for a correct answer in Challenge Mode based on speed, difficulty, and streak.
+ * 
+ * Base Points by Difficulty:
+ * - Easy: 50 pts
+ * - Medium: 100 pts
+ * - Hard: 200 pts
  * 
  * Rules:
  * - Time <= fp: Earns 100% of max possible points (Base Points * Streak Multiplier).
@@ -9,13 +14,14 @@ import { TIMING_CONFIG, SCORING_CONFIG } from './gameConfig.js';
  * - fp < Time < zp: Drops by percentage of remaining time, floored to nearest integer.
  * 
  * @param {string} topic - e.g. 'addition', 'subtraction', 'multiplication', 'division', 'bedmas'
+ * @param {string} difficulty - 'easy', 'medium', 'hard'
  * @param {number} timeTakenSeconds - time taken in seconds
  * @param {number} currentStreak - current correct answer streak
  * @returns {object} { pointsEarned, percentageRemaining, timeTakenSeconds }
  */
-export function calculateChallengeScore(topic, timeTakenSeconds, currentStreak = 0) {
-  const topicKey = (topic || 'addition').toLowerCase();
-  const timing = TIMING_CONFIG[topicKey] || { fp: 4, zp: 12 };
+export function calculateChallengeScore(topic, difficulty, timeTakenSeconds, currentStreak = 0) {
+  const timing = getQuestionTiming(topic, difficulty);
+  const basePoints = getBasePoints(difficulty);
 
   // Calculate Streak Multiplier (e.g. 1.0x, 1.1x up to max 2.0x)
   const streakMultiplier = Math.min(
@@ -24,7 +30,7 @@ export function calculateChallengeScore(topic, timeTakenSeconds, currentStreak =
   );
 
   // Maximum possible points for this question
-  const maxPossiblePoints = SCORING_CONFIG.basePoints * streakMultiplier;
+  const maxPossiblePoints = basePoints * streakMultiplier;
 
   let percentageRemaining = 0;
 

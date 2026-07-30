@@ -1,7 +1,7 @@
 import confetti from 'canvas-confetti';
 import { generateQuestion } from './mathEngine.js';
 import { calculateChallengeScore } from './scoringEngine.js';
-import { TIMING_CONFIG } from './gameConfig.js';
+import { getQuestionTiming } from './gameConfig.js';
 import { sounds } from './audio.js';
 
 // DOM Elements & Screens
@@ -70,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.3.3';
+const APP_VERSION = 'v1.4.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -332,16 +332,16 @@ function loadNextQuestion() {
   updateInputDisplay();
   questionCard.style.borderColor = 'var(--bg-card-border)';
 
-  // Start question timer
+  // Start question timer based on topic & difficulty
   state.questionStartTime = Date.now();
 
   if (state.mode === 'challenge') {
-    startTimerBar(state.currentQuestion.rawTopic);
+    startTimerBar(state.currentQuestion.rawTopic, state.currentQuestion.difficulty);
   }
 }
 
-function startTimerBar(rawTopic) {
-  const timing = TIMING_CONFIG[rawTopic] || { fp: 4, zp: 12 };
+function startTimerBar(rawTopic, difficulty) {
+  const timing = getQuestionTiming(rawTopic, difficulty);
   const totalDurationMs = timing.zp * 1000;
   
   timerBarInner.style.width = '100%';
@@ -434,6 +434,7 @@ function handleCorrectAnswer() {
     const timeTakenSec = (Date.now() - state.questionStartTime) / 1000;
     const scoreResult = calculateChallengeScore(
       state.currentQuestion.rawTopic,
+      state.currentQuestion.difficulty,
       timeTakenSec,
       state.streak
     );
