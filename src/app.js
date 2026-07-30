@@ -13,6 +13,7 @@ const sectionDifficulty = document.getElementById('section-difficulty');
 const cardMixTopic = document.getElementById('card-mix-topic');
 const btnStartText = document.getElementById('btn-start-text');
 
+const toggleDecimals = document.getElementById('toggle-decimals');
 const topicCards = document.querySelectorAll('.topic-card');
 const diffBtns = document.querySelectorAll('.diff-btn');
 const btnStartPractice = document.getElementById('btn-start-practice');
@@ -49,6 +50,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
+  allowDecimals: false,
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -60,7 +62,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.1.0';
+const APP_VERSION = 'v1.2.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -103,6 +105,14 @@ function setupEventListeners() {
       updateMenuUIForMode();
     });
   });
+
+  // Decimals Toggle
+  if (toggleDecimals) {
+    toggleDecimals.addEventListener('change', () => {
+      sounds.playClick();
+      state.allowDecimals = toggleDecimals.checked;
+    });
+  }
 
   // Topic selection
   topicCards.forEach(card => {
@@ -257,7 +267,7 @@ function loadNextQuestion() {
 
   state.userAnswerInput = '';
   const diffToUse = state.mode === 'challenge' ? 'random' : state.selectedDifficulty;
-  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse);
+  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse, state.allowDecimals);
 
   // Update Topic Badge Title
   const topicTitles = {
@@ -376,7 +386,6 @@ function handleCorrectAnswer() {
   sounds.playCorrect();
   questionCard.style.borderColor = 'var(--accent-success)';
   
-  // Calculate score if in Challenge Mode
   if (state.mode === 'challenge') {
     const timeTakenSec = (Date.now() - state.questionStartTime) / 1000;
     const scoreResult = calculateChallengeScore(
