@@ -70,7 +70,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.3.1';
+const APP_VERSION = 'v1.3.2';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -463,6 +463,10 @@ function handleIncorrectAnswer() {
   sounds.playWrong();
   questionCard.style.borderColor = 'var(--accent-danger)';
 
+  // Reset streak to 0 on wrong answer
+  state.streak = 0;
+  streakCountEl.textContent = '0';
+
   state.lives--;
   updateLivesDisplay();
 
@@ -473,10 +477,10 @@ function handleIncorrectAnswer() {
     modalTitleEl.textContent = state.mode === 'challenge' 
       ? `Game Over! Final Score: ${state.totalScore.toLocaleString()} 🏆`
       : 'Game Over 💔';
-    btnModalOk.textContent = 'Return to Main Menu 🏠';
+    btnModalOk.textContent = 'Main Menu';
   } else {
     modalTitleEl.textContent = 'Incorrect';
-    btnModalOk.textContent = 'OK / Next Question →';
+    btnModalOk.textContent = 'Next';
   }
 
   modalFailed.classList.remove('hidden');
