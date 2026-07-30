@@ -1,4 +1,5 @@
 // Math Question Generator Engine for Addition, Subtraction, Multiplication, Division, and BEDMAS
+import { ALL_CATEGORIES } from './gameConfig.js';
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -10,19 +11,33 @@ function roundToDecimals(num, decimals = 2) {
 }
 
 export function generateQuestion(topic, difficulty = 'medium') {
-  switch (topic) {
+  let targetTopic = topic;
+  let targetDifficulty = difficulty;
+
+  // Handle 'mix' topic for Challenge Mode
+  if (targetTopic === 'mix') {
+    targetTopic = ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)];
+  }
+
+  // Handle 'random' difficulty for Challenge Mode
+  if (targetDifficulty === 'random') {
+    const diffs = ['easy', 'medium', 'hard'];
+    targetDifficulty = diffs[Math.floor(Math.random() * diffs.length)];
+  }
+
+  switch (targetTopic) {
     case 'addition':
-      return generateAddition(difficulty);
+      return generateAddition(targetDifficulty);
     case 'subtraction':
-      return generateSubtraction(difficulty);
+      return generateSubtraction(targetDifficulty);
     case 'multiplication':
-      return generateMultiplication(difficulty);
+      return generateMultiplication(targetDifficulty);
     case 'division':
-      return generateDivision(difficulty);
+      return generateDivision(targetDifficulty);
     case 'bedmas':
-      return generateBEDMAS(difficulty);
+      return generateBEDMAS(targetDifficulty);
     default:
-      return generateAddition(difficulty);
+      return generateAddition(targetDifficulty);
   }
 }
 
@@ -35,7 +50,6 @@ function generateAddition(difficulty) {
     a = randomInt(15, 99);
     b = randomInt(15, 99);
   } else {
-    // Hard: decimals or 3-digit numbers
     const useDecimal = Math.random() > 0.5;
     if (useDecimal) {
       a = roundToDecimals(randomInt(10, 99) / 10, 1);
@@ -51,6 +65,8 @@ function generateAddition(difficulty) {
     expression: `${a} + ${b}`,
     answer: answer,
     topic: 'Addition',
+    rawTopic: 'addition',
+    difficulty: difficulty,
     hint: 'Add the two numbers together.'
   };
 }
@@ -59,7 +75,7 @@ function generateSubtraction(difficulty) {
   let a, b;
   if (difficulty === 'easy') {
     a = randomInt(10, 30);
-    b = randomInt(2, a); // ensure non-negative for easy
+    b = randomInt(2, a);
   } else if (difficulty === 'medium') {
     a = randomInt(25, 120);
     b = randomInt(10, a);
@@ -79,6 +95,8 @@ function generateSubtraction(difficulty) {
     expression: `${a} − ${b}`,
     answer: answer,
     topic: 'Subtraction',
+    rawTopic: 'subtraction',
+    difficulty: difficulty,
     hint: 'Subtract the second number from the first.'
   };
 }
@@ -107,6 +125,8 @@ function generateMultiplication(difficulty) {
     expression: `${a} × ${b}`,
     answer: answer,
     topic: 'Multiplication',
+    rawTopic: 'multiplication',
+    difficulty: difficulty,
     hint: 'Multiply the numbers.'
   };
 }
@@ -122,6 +142,8 @@ function generateDivision(difficulty) {
       expression: `${dividend} ÷ ${divisor}`,
       answer: quotient,
       topic: 'Division',
+      rawTopic: 'division',
+      difficulty: difficulty,
       hint: 'Divide the dividend by the divisor.'
     };
   } else if (difficulty === 'medium') {
@@ -132,13 +154,13 @@ function generateDivision(difficulty) {
       expression: `${dividend} ÷ ${divisor}`,
       answer: quotient,
       topic: 'Division',
+      rawTopic: 'division',
+      difficulty: difficulty,
       hint: 'Divide the dividend by the divisor.'
     };
   } else {
-    // Hard: allow clean decimals like .5 or .25
     const type = randomInt(1, 3);
     if (type === 1) {
-      // Decimal answer (e.g. 7 / 2 = 3.5 or 15 / 4 = 3.75)
       divisor = randomInt(2, 8) * 2;
       const base = randomInt(3, 25);
       dividend = base * (divisor / 2) + (divisor / 4);
@@ -148,6 +170,8 @@ function generateDivision(difficulty) {
         expression: `${dividend} ÷ ${divisor}`,
         answer: answer,
         topic: 'Division',
+        rawTopic: 'division',
+        difficulty: difficulty,
         hint: 'Calculate the quotient (may include decimals).'
       };
     } else {
@@ -158,6 +182,8 @@ function generateDivision(difficulty) {
         expression: `${dividend} ÷ ${divisor}`,
         answer: quotient,
         topic: 'Division',
+        rawTopic: 'division',
+        difficulty: difficulty,
         hint: 'Divide the dividend by the divisor.'
       };
     }
@@ -168,12 +194,10 @@ function generateBEDMAS(difficulty) {
   const templates = [];
 
   if (difficulty === 'easy') {
-    // 2 operations
     templates.push(() => {
       const a = randomInt(2, 10);
       const b = randomInt(2, 10);
       const c = randomInt(2, 10);
-      // (a + b) * c
       return {
         expr: `(${a} + ${b}) × ${c}`,
         ans: (a + b) * c,
@@ -185,7 +209,6 @@ function generateBEDMAS(difficulty) {
       const a = randomInt(10, 30);
       const b = randomInt(2, 6);
       const c = randomInt(2, 5);
-      // a - b * c
       return {
         expr: `${a} − ${b} × ${c}`,
         ans: a - (b * c),
@@ -197,7 +220,6 @@ function generateBEDMAS(difficulty) {
       const a = randomInt(2, 10);
       const b = randomInt(2, 10);
       const c = randomInt(2, 10);
-      // a * b + c
       return {
         expr: `${a} × ${b} + ${c}`,
         ans: (a * b) + c,
@@ -205,12 +227,9 @@ function generateBEDMAS(difficulty) {
       };
     });
   } else if (difficulty === 'medium') {
-    // 3 operations or exponents
     templates.push(() => {
-      const a = randomInt(2, 5); // base
-      const exp = 2; // squared
+      const a = randomInt(2, 5);
       const b = randomInt(2, 12);
-      // a² + b
       return {
         expr: `${a}² + ${b}`,
         ans: Math.pow(a, 2) + b,
@@ -223,7 +242,6 @@ function generateBEDMAS(difficulty) {
       const b = randomInt(2, 8);
       const c = randomInt(2, 5);
       const mult = b * c;
-      // a - (b * c)
       return {
         expr: `${a} − (${b} × ${c})`,
         ans: a - mult,
@@ -236,7 +254,6 @@ function generateBEDMAS(difficulty) {
       const b = randomInt(2, 6);
       const dividend = multVal * b;
       const c = randomInt(5, 20);
-      // dividend ÷ b + c
       return {
         expr: `${dividend} ÷ ${b} + ${c}`,
         ans: multVal + c,
@@ -248,7 +265,6 @@ function generateBEDMAS(difficulty) {
       const a = randomInt(2, 8);
       const b = randomInt(2, 6);
       const c = randomInt(2, 5);
-      // (a + b) × c - 4
       const sub = randomInt(1, 10);
       return {
         expr: `(${a} + ${b}) × ${c} − ${sub}`,
@@ -257,13 +273,10 @@ function generateBEDMAS(difficulty) {
       };
     });
   } else {
-    // Hard BEDMAS
     templates.push(() => {
       const base = randomInt(2, 4);
-      const exp = 3;
       const b = randomInt(3, 8);
       const c = randomInt(2, 5);
-      // base^3 + b * c
       const expVal = Math.pow(base, 3);
       const multVal = b * c;
       return {
@@ -278,7 +291,6 @@ function generateBEDMAS(difficulty) {
       const b = randomInt(2, 6);
       const c = randomInt(2, 4);
       const d = randomInt(1, 10);
-      // (a * b) - (c * d)
       const p1 = a * b;
       const p2 = c * d;
       return {
@@ -294,7 +306,6 @@ function generateBEDMAS(difficulty) {
       const dividend = divRes * divisor;
       const b = randomInt(3, 9);
       const c = randomInt(2, 5);
-      // dividend ÷ divisor + b * c
       const multRes = b * c;
       return {
         expr: `${dividend} ÷ ${divisor} + ${b} × ${c}`,
@@ -309,6 +320,8 @@ function generateBEDMAS(difficulty) {
     expression: selected.expr,
     answer: roundToDecimals(selected.ans, 2),
     topic: 'BEDMAS',
+    rawTopic: 'bedmas',
+    difficulty: difficulty,
     hint: selected.explanation || 'Follow Order of Operations: Brackets, Exponents, Division/Multiplication, Addition/Subtraction.'
   };
 }

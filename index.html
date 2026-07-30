@@ -23,7 +23,7 @@
           <div>
             <div class="title-with-version">
               <h1>Mental Math</h1>
-              <span class="version-badge" id="version-badge">v1.0.3</span>
+              <span class="version-badge" id="version-badge">v1.1.0</span>
             </div>
             <p class="subtitle">Train your brain speed</p>
           </div>
@@ -34,8 +34,21 @@
       </header>
 
       <main class="menu-content">
-        <!-- DIFFICULTY SELECTOR -->
+        <!-- MODE SELECTOR TABS -->
         <section class="section">
+          <label class="section-title">Select Mode</label>
+          <div class="mode-picker">
+            <button class="mode-btn active" data-mode="practice">
+              <span>🎯 Practice</span>
+            </button>
+            <button class="mode-btn" data-mode="challenge">
+              <span>🏆 Challenge</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- DIFFICULTY SELECTOR (PRACTICE MODE ONLY) -->
+        <section class="section" id="section-difficulty">
           <label class="section-title">Difficulty Level</label>
           <div class="difficulty-picker">
             <button class="diff-btn" data-diff="easy">Easy</button>
@@ -87,13 +100,22 @@
                 <p>Brackets & Order of Ops</p>
               </div>
             </button>
+
+            <!-- MIX ALL CARD (SHOWN IN CHALLENGE MODE) -->
+            <button class="topic-card mix-topic-card hidden" data-topic="mix" id="card-mix-topic">
+              <div class="topic-badge mix-bg">🔀</div>
+              <div class="topic-info">
+                <h3>Mix All</h3>
+                <p>Random math categories</p>
+              </div>
+            </button>
           </div>
         </section>
 
-        <!-- START PRACTICE BUTTON -->
+        <!-- START PRACTICE / CHALLENGE BUTTON -->
         <div class="action-bar">
           <button id="btn-start-practice" class="btn-primary">
-            Start Practice ⚡
+            <span id="btn-start-text">Start Practice ⚡</span>
           </button>
         </div>
 
@@ -108,13 +130,19 @@
           <span class="exit-arrow">←</span> Exit
         </button>
 
-        <div class="game-badge" id="game-topic-badge">Addition</div>
+        <div class="badges-group">
+          <div class="game-badge mode-tag" id="game-mode-badge">Practice</div>
+          <div class="game-badge" id="game-topic-badge">Addition</div>
+        </div>
 
         <div class="game-stats">
+          <div class="stat-pill score-pill hidden" id="score-pill" title="Total Points">
+            ⭐ <span id="score-count">0</span>
+          </div>
           <div class="stat-pill lives-pill" id="lives-pill" title="Lives Remaining">
             ❤️❤️❤️
           </div>
-          <div class="stat-pill streak-pill" id="streak-pill" title="Current Score Streak">
+          <div class="stat-pill streak-pill" id="streak-pill" title="Current Streak">
             🔥 <span id="streak-count">0</span>
           </div>
           <button id="btn-toggle-sound-game" class="icon-btn small-icon-btn">
@@ -127,6 +155,11 @@
       <main class="game-content">
         <!-- QUESTION CARD -->
         <div class="question-card" id="question-card">
+          <!-- SPEED TIMER BAR (CHALLENGE MODE) -->
+          <div class="timer-bar-wrapper hidden" id="timer-bar-wrapper">
+            <div class="timer-bar-inner" id="timer-bar-inner"></div>
+          </div>
+
           <div class="expression-display" id="expression-display">12 + 15</div>
 
           <!-- INPUT ANSWER DISPLAY -->

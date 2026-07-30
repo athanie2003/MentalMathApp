@@ -1,22 +1,37 @@
 import confetti from 'canvas-confetti';
 import { generateQuestion } from './mathEngine.js';
+import { calculateChallengeScore } from './scoringEngine.js';
+import { TIMING_CONFIG } from './gameConfig.js';
 import { sounds } from './audio.js';
 
 // DOM Elements
 const screenMenu = document.getElementById('screen-menu');
 const screenGame = document.getElementById('screen-game');
 
+const modeBtns = document.querySelectorAll('.mode-btn');
+const sectionDifficulty = document.getElementById('section-difficulty');
+const cardMixTopic = document.getElementById('card-mix-topic');
+const btnStartText = document.getElementById('btn-start-text');
+
 const topicCards = document.querySelectorAll('.topic-card');
 const diffBtns = document.querySelectorAll('.diff-btn');
 const btnStartPractice = document.getElementById('btn-start-practice');
 
 const btnExitGame = document.getElementById('btn-exit-game');
+const gameModeBadge = document.getElementById('game-mode-badge');
 const gameTopicBadge = document.getElementById('game-topic-badge');
+
+const scorePill = document.getElementById('score-pill');
+const scoreCountEl = document.getElementById('score-count');
 const streakCountEl = document.getElementById('streak-count');
 const livesPillEl = document.getElementById('lives-pill');
+
 const btnToggleSoundMenu = document.getElementById('btn-toggle-sound-menu');
 const btnToggleSoundGame = document.getElementById('btn-toggle-sound-game');
 const soundIcons = document.querySelectorAll('.sound-icon');
+
+const timerBarWrapper = document.getElementById('timer-bar-wrapper');
+const timerBarInner = document.getElementById('timer-bar-inner');
 
 const expressionDisplay = document.getElementById('expression-display');
 const inputPlaceholder = document.getElementById('input-placeholder');
@@ -31,26 +46,45 @@ const btnModalOk = document.getElementById('btn-modal-ok');
 
 // Application State
 let state = {
+  mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
   streak: 0,
+  totalScore: 0,
+  questionStartTime: 0,
+  timerInterval: null,
   isMuted: false
 };
 
+// Version Setup
+const APP_VERSION = 'v1.1.0';
+const SHOW_VERSION = true;
+
 // INITIALIZATION
 function init() {
+  setupVersionBadge();
   setupEventListeners();
   registerServiceWorker();
+}
+
+function setupVersionBadge() {
+  const versionBadge = document.getElementById('version-badge');
+  if (versionBadge) {
+    versionBadge.textContent = APP_VERSION;
+    if (!SHOW_VERSION) {
+      versionBadge.classList.add('hidden');
+    }
+  }
 }
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then((reg) => {
-        console.log('ServiceWorker registered cleanly with scope:', reg.scope);
+        console.log('ServiceWorker registered with scope:', reg.scope);
       })
       .catch((err) => {
         console.log('ServiceWorker registration failed: ', err);
@@ -59,6 +93,17 @@ function registerServiceWorker() {
 }
 
 function setupEventListeners() {
+  // Mode selection (Practice vs Challenge)
+  modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sounds.playClick();
+      modeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.mode = btn.dataset.mode;
+      updateMenuUIForMode();
+    });
+  });
+
   // Topic selection
   topicCards.forEach(card => {
     card.addEventListener('click', () => {
@@ -79,10 +124,10 @@ function setupEventListeners() {
     });
   });
 
-  // Start practice button
+  // Start practice / challenge button
   btnStartPractice.addEventListener('click', () => {
     sounds.playClick();
-    startPracticeSession();
+    startSession();
   });
 
   // Exit button
@@ -103,21 +148,10 @@ function setupEventListeners() {
     }
   });
 
-  // Version badge setup
-  const versionBadge = document.getElementById('version-badge');
-  const APP_VERSION = 'v1.0.3';
-  const SHOW_VERSION = true; // Change to false to hide version badge anytime
-  if (versionBadge) {
-    versionBadge.textContent = APP_VERSION;
-    if (!SHOW_VERSION) {
-      versionBadge.classList.add('hidden');
-    }
-  }
-
-  // Keypad press listener (Triggers ONCE on press; e.preventDefault cancels release click)
+  // Keypad press listener (Single press execution)
   document.querySelectorAll('.key-btn').forEach(btn => {
     btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); // Cancels duplicate synthetic click on release
+      e.preventDefault();
       const key = btn.dataset.key;
       handleKeyPress(key);
     });
@@ -154,21 +188,47 @@ function setupEventListeners() {
   });
 }
 
-// NAVIGATION & SESSION CONTROL
-function startPracticeSession() {
+function updateMenuUIForMode() {
+  if (state.mode === 'challenge') {
+    sectionDifficulty.classList.add('hidden');
+    cardMixTopic.classList.remove('hidden');
+    btnStartText.textContent = 'Start Challenge 🏆';
+  } else {
+    sectionDifficulty.classList.remove('hidden');
+    cardMixTopic.classList.add('hidden');
+    btnStartText.textContent = 'Start Practice ⚡';
+    
+    // If mix was selected, fallback to addition for practice mode
+    if (state.selectedTopic === 'mix') {
+      state.selectedTopic = 'addition';
+      topicCards.forEach(c => {
+        c.classList.toggle('active', c.dataset.topic === 'addition');
+      });
+    }
+  }
+}
+
+// SESSION CONTROL
+function startSession() {
   state.streak = 0;
   state.lives = 3;
+  state.totalScore = 0;
+  
   streakCountEl.textContent = '0';
+  scoreCountEl.textContent = '0';
   updateLivesDisplay();
 
-  const topicTitles = {
-    addition: 'Addition',
-    subtraction: 'Subtraction',
-    multiplication: 'Multiplication',
-    division: 'Division',
-    bedmas: 'BEDMAS'
-  };
-  gameTopicBadge.textContent = topicTitles[state.selectedTopic] || 'Math';
+  // Set mode & topic badges
+  gameModeBadge.textContent = state.mode === 'challenge' ? 'Challenge' : 'Practice';
+  gameModeBadge.className = `game-badge ${state.mode === 'challenge' ? 'mode-tag' : ''}`;
+
+  if (state.mode === 'challenge') {
+    scorePill.classList.remove('hidden');
+    timerBarWrapper.classList.remove('hidden');
+  } else {
+    scorePill.classList.add('hidden');
+    timerBarWrapper.classList.add('hidden');
+  }
 
   screenMenu.classList.remove('active');
   screenGame.classList.add('active');
@@ -177,6 +237,7 @@ function startPracticeSession() {
 }
 
 function exitToMenu() {
+  stopTimerBar();
   modalFailed.classList.add('hidden');
   screenGame.classList.remove('active');
   screenMenu.classList.add('active');
@@ -190,14 +251,63 @@ function updateLivesDisplay() {
   livesPillEl.textContent = hearts;
 }
 
-// QUESTION LOOP
+// QUESTION LOOP & TIMER
 function loadNextQuestion() {
-  state.userAnswerInput = '';
-  state.currentQuestion = generateQuestion(state.selectedTopic, state.selectedDifficulty);
+  stopTimerBar();
 
+  state.userAnswerInput = '';
+  const diffToUse = state.mode === 'challenge' ? 'random' : state.selectedDifficulty;
+  state.currentQuestion = generateQuestion(state.selectedTopic, diffToUse);
+
+  // Update Topic Badge Title
+  const topicTitles = {
+    addition: 'Addition',
+    subtraction: 'Subtraction',
+    multiplication: 'Multiplication',
+    division: 'Division',
+    bedmas: 'BEDMAS',
+    mix: 'Mix All'
+  };
+  
+  const displayTopicName = state.selectedTopic === 'mix' 
+    ? `Mix (${state.currentQuestion.topic})` 
+    : (topicTitles[state.selectedTopic] || state.currentQuestion.topic);
+
+  gameTopicBadge.textContent = displayTopicName;
   expressionDisplay.textContent = state.currentQuestion.expression;
   updateInputDisplay();
   questionCard.style.borderColor = 'var(--bg-card-border)';
+
+  // Start question timer
+  state.questionStartTime = Date.now();
+
+  if (state.mode === 'challenge') {
+    startTimerBar(state.currentQuestion.rawTopic);
+  }
+}
+
+function startTimerBar(rawTopic) {
+  const timing = TIMING_CONFIG[rawTopic] || { fp: 4, zp: 12 };
+  const totalDurationMs = timing.zp * 1000;
+  
+  timerBarInner.style.width = '100%';
+
+  state.timerInterval = setInterval(() => {
+    const elapsed = Date.now() - state.questionStartTime;
+    const remainingRatio = Math.max(0, 1 - (elapsed / totalDurationMs));
+    timerBarInner.style.width = `${remainingRatio * 100}%`;
+
+    if (remainingRatio <= 0) {
+      clearInterval(state.timerInterval);
+    }
+  }, 50);
+}
+
+function stopTimerBar() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
 }
 
 function updateInputDisplay() {
@@ -245,7 +355,7 @@ function handleKeyPress(key) {
   updateInputDisplay();
 }
 
-// SUBMIT & GRADING
+// SUBMIT & SCORING
 function submitAnswer() {
   if (state.userAnswerInput === '' || state.userAnswerInput === '-') return;
 
@@ -262,9 +372,23 @@ function submitAnswer() {
 }
 
 function handleCorrectAnswer() {
+  stopTimerBar();
   sounds.playCorrect();
   questionCard.style.borderColor = 'var(--accent-success)';
   
+  // Calculate score if in Challenge Mode
+  if (state.mode === 'challenge') {
+    const timeTakenSec = (Date.now() - state.questionStartTime) / 1000;
+    const scoreResult = calculateChallengeScore(
+      state.currentQuestion.rawTopic,
+      timeTakenSec,
+      state.streak
+    );
+
+    state.totalScore += scoreResult.pointsEarned;
+    scoreCountEl.textContent = state.totalScore.toLocaleString();
+  }
+
   state.streak++;
   streakCountEl.textContent = state.streak;
 
@@ -282,19 +406,20 @@ function handleCorrectAnswer() {
 }
 
 function handleIncorrectAnswer() {
+  stopTimerBar();
   sounds.playWrong();
   questionCard.style.borderColor = 'var(--accent-danger)';
 
-  // Decrement life for this wrong answer
   state.lives--;
   updateLivesDisplay();
 
-  // Populate answer reveal modal
   modalCorrectAns.textContent = state.currentQuestion.answer;
   modalExplanationText.textContent = state.currentQuestion.hint || 'Review the math calculation step and try the next question!';
 
   if (state.lives <= 0) {
-    modalTitleEl.textContent = 'Game Over 💔';
+    modalTitleEl.textContent = state.mode === 'challenge' 
+      ? `Game Over! Final Score: ${state.totalScore.toLocaleString()} 🏆`
+      : 'Game Over 💔';
     btnModalOk.textContent = 'Return to Main Menu 🏠';
   } else {
     modalTitleEl.textContent = 'Incorrect';
