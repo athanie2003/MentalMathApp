@@ -10,6 +10,18 @@ function roundToDecimals(num, decimals = 2) {
   return Math.round((num + Number.EPSILON) * factor) / factor;
 }
 
+function getIntegerBaseStep(percent) {
+  if (percent % 100 === 0) return 1;
+  if (percent % 50 === 0) return 2;
+  if (percent % 25 === 0) return 4;
+  if (percent % 20 === 0) return 5;
+  if (percent % 10 === 0) return 10;
+  if (percent % 5 === 0) return 20;
+  if (percent % 4 === 0) return 25;
+  if (percent % 2 === 0) return 50;
+  return 100;
+}
+
 /**
  * Main Question Generator
  * @param {string} topic - 'addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage', 'money', 'mix'
@@ -436,18 +448,10 @@ function generatePercentage(difficulty, activeTypes = []) {
   let baseNum, answer;
 
   if (!allowDecimals) {
-    // Whole numbers only (integers)
-    let step = 10;
-    if (percent % 100 === 0) step = 1;
-    else if (percent % 50 === 0) step = 2;
-    else if (percent % 25 === 0) step = 4;
-    else if (percent % 20 === 0) step = 5;
-    else if (percent % 10 === 0) step = 10;
-    else if (percent % 5 === 0) step = 20;
-    else step = 100;
-
-    baseNum = randomInt(1, 25) * step;
-    answer = Math.round((percent * baseNum) / 100);
+    // Guaranteed exact integer answer without artificial rounding
+    const step = getIntegerBaseStep(percent);
+    baseNum = randomInt(1, 20) * step;
+    answer = (percent * baseNum) / 100;
   } else if (difficulty === 'medium') {
     // Medium with decimals -> up to 1 decimal place
     baseNum = randomInt(3, 45) * 2;
@@ -504,8 +508,10 @@ function generateMoney(difficulty, activeTypes = []) {
     let billVal;
 
     if (!allowDecimals) {
-      billVal = randomInt(2, 20) * (p === 15 ? 20 : 10);
-      ans = Math.round((p * billVal) / 100);
+      // Step ensures (p * billVal) % 100 === 0 naturally with 0 decimals
+      const step = getIntegerBaseStep(p);
+      billVal = randomInt(1, 15) * step;
+      ans = (p * billVal) / 100;
     } else {
       billVal = randomInt(4, 30) * 5;
       ans = roundToDecimals((p * billVal) / 100, 2);
@@ -520,8 +526,9 @@ function generateMoney(difficulty, activeTypes = []) {
     let originalPrice;
 
     if (!allowDecimals) {
-      originalPrice = randomInt(2, 20) * 10;
-      ans = Math.round((p * originalPrice) / 100);
+      const step = getIntegerBaseStep(p);
+      originalPrice = randomInt(1, 15) * step;
+      ans = (p * originalPrice) / 100;
     } else {
       originalPrice = randomInt(3, 40) * 5;
       ans = roundToDecimals((p * originalPrice) / 100, 2);
@@ -536,8 +543,9 @@ function generateMoney(difficulty, activeTypes = []) {
     let price;
 
     if (!allowDecimals) {
-      price = randomInt(2, 20) * 10;
-      ans = Math.round((p * price) / 100);
+      const step = getIntegerBaseStep(p);
+      price = randomInt(1, 15) * step;
+      ans = (p * price) / 100;
     } else {
       price = randomInt(3, 40) * 5;
       ans = roundToDecimals((p * price) / 100, 2);
@@ -548,7 +556,13 @@ function generateMoney(difficulty, activeTypes = []) {
 
   } else if (chosenScenario === 'total_bill') {
     const p = 15;
-    let billVal = randomInt(2, 10) * 20;
+    let billVal;
+    if (!allowDecimals) {
+      const step = getIntegerBaseStep(p);
+      billVal = randomInt(1, 15) * step;
+    } else {
+      billVal = randomInt(2, 10) * 20;
+    }
     const tipVal = (p * billVal) / 100;
     ans = roundToDecimals(billVal + tipVal, 2);
     expr = `Total bill for $${billVal} with 15% tip`;
@@ -556,7 +570,13 @@ function generateMoney(difficulty, activeTypes = []) {
 
   } else {
     const p = 10;
-    let itemPrice = randomInt(2, 20) * 10;
+    let itemPrice;
+    if (!allowDecimals) {
+      const step = getIntegerBaseStep(p);
+      itemPrice = randomInt(1, 15) * step;
+    } else {
+      itemPrice = randomInt(2, 20) * 10;
+    }
     const taxVal = (p * itemPrice) / 100;
     ans = roundToDecimals(itemPrice + taxVal, 2);
     expr = `Final price for $${itemPrice} item with 10% tax`;

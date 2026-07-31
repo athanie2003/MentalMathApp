@@ -71,7 +71,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.6.0';
+const APP_VERSION = 'v1.6.1';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
