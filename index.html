@@ -24,7 +24,7 @@
           <div>
             <div class="title-with-version">
               <h1>Mental Math</h1>
-              <span class="version-badge" id="version-badge">v1.7.0</span>
+              <span class="version-badge" id="version-badge">v1.7.1</span>
             </div>
             <p class="subtitle">Train your brain speed</p>
           </div>
@@ -299,6 +299,38 @@
 
         <button id="btn-modal-ok" class="btn-primary full-width">
           Next
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME OVER / SCORE SUMMARY MODAL -->
+    <div id="modal-summary" class="modal-overlay hidden">
+      <div class="modal-card summary-card">
+        <div class="modal-icon summary-icon" id="summary-icon-el">🏆</div>
+        <h2 id="summary-title-el">Game Over</h2>
+        
+        <div class="summary-score-box">
+          <div class="summary-label">Final Score</div>
+          <div class="summary-score-val" id="summary-score-val">0</div>
+        </div>
+
+        <div id="summary-pb-banner" class="summary-pb-banner hidden">
+          <span>✨ NEW PERSONAL RECORD! ✨</span>
+        </div>
+
+        <div class="summary-stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">Category</span>
+            <span class="stat-value" id="summary-topic-name">Addition</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Previous Record</span>
+            <span class="stat-value" id="summary-prev-pb">0</span>
+          </div>
+        </div>
+
+        <button id="btn-summary-main-menu" class="btn-primary full-width">
+          Main Menu
         </button>
       </div>
     </div>

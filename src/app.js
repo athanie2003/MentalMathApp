@@ -49,11 +49,21 @@ const inputPlaceholder = document.getElementById('input-placeholder');
 const inputValueEl = document.getElementById('input-value');
 const questionCard = document.getElementById('question-card');
 
+// Answer Reveal Modal
 const modalFailed = document.getElementById('modal-failed');
 const modalTitleEl = document.getElementById('modal-title-el');
 const modalCorrectAns = document.getElementById('modal-correct-ans');
 const modalExplanationText = document.getElementById('modal-explanation-text');
 const btnModalOk = document.getElementById('btn-modal-ok');
+
+// Game Summary / High Score Modal
+const modalSummary = document.getElementById('modal-summary');
+const summaryTitleEl = document.getElementById('summary-title-el');
+const summaryScoreVal = document.getElementById('summary-score-val');
+const summaryPbBanner = document.getElementById('summary-pb-banner');
+const summaryTopicName = document.getElementById('summary-topic-name');
+const summaryPrevPb = document.getElementById('summary-prev-pb');
+const btnSummaryMainMenu = document.getElementById('btn-summary-main-menu');
 
 // Application State
 let state = {
@@ -68,11 +78,12 @@ let state = {
   totalScore: 0,
   questionStartTime: 0,
   timerInterval: null,
-  isMuted: false
+  isMuted: false,
+  pendingGameOver: false
 };
 
 // Version Setup
-const APP_VERSION = 'v1.7.0';
+const APP_VERSION = 'v1.7.1';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -171,6 +182,15 @@ function setupEventListeners() {
     sounds.playClick();
     exitToMenu();
   });
+
+  // Summary Modal Main Menu button
+  if (btnSummaryMainMenu) {
+    btnSummaryMainMenu.addEventListener('click', () => {
+      sounds.playClick();
+      modalSummary.classList.add('hidden');
+      exitToMenu();
+    });
+  }
 
   // Mute toggles
   [btnToggleSoundMenu, btnToggleSoundConfig, btnToggleSoundGame].forEach(btn => {
@@ -307,6 +327,7 @@ function startSession() {
   state.streak = 0;
   state.lives = 3;
   state.totalScore = 0;
+  state.pendingGameOver = false;
   
   streakCountEl.textContent = '0';
   scoreCountEl.textContent = '0';
@@ -333,6 +354,7 @@ function startSession() {
 function exitToMenu() {
   stopTimerBar();
   modalFailed.classList.add('hidden');
+  modalSummary.classList.add('hidden');
   screenGame.classList.remove('active');
   screenMenu.classList.add('active');
   renderHighScoresUI();
@@ -421,7 +443,7 @@ function updateInputDisplay() {
 
 // KEYPAD HANDLER
 function handleKeyPress(key) {
-  if (!modalFailed.classList.contains('hidden')) return;
+  if (!modalFailed.classList.contains('hidden') || !modalSummary.classList.contains('hidden')) return;
 
   sounds.playTap();
 
@@ -530,28 +552,11 @@ function handleIncorrectAnswer() {
   modalCorrectAns.textContent = state.currentQuestion.answer;
   modalExplanationText.textContent = state.currentQuestion.hint || 'Review the math calculation step and try the next question!';
 
+  modalTitleEl.textContent = 'Incorrect';
+  btnModalOk.textContent = 'Next';
+
   if (state.lives <= 0) {
-    if (state.mode === 'challenge') {
-      const variant = getVariantFromTypes(state.selectedTypes);
-      const scoreResult = saveHighScore(state.selectedTopic, variant, state.totalScore);
-      
-      if (scoreResult.isNewPB && state.totalScore > 0) {
-        modalTitleEl.textContent = `🎉 NEW RECORD! ${state.totalScore.toLocaleString()} 🏆`;
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.5 }
-        });
-      } else {
-        modalTitleEl.textContent = `Game Over! Score: ${state.totalScore.toLocaleString()} 🏆`;
-      }
-    } else {
-      modalTitleEl.textContent = 'Game Over 💔';
-    }
-    btnModalOk.textContent = 'Main Menu';
-  } else {
-    modalTitleEl.textContent = 'Incorrect';
-    btnModalOk.textContent = 'Next';
+    state.pendingGameOver = true;
   }
 
   modalFailed.classList.remove('hidden');
@@ -559,8 +564,47 @@ function handleIncorrectAnswer() {
 
 function closeFailedModalAndNextQuestion() {
   modalFailed.classList.add('hidden');
-  if (state.lives <= 0) {
-    exitToMenu();
+
+  if (state.pendingGameOver) {
+    state.pendingGameOver = false;
+
+    if (state.mode === 'challenge') {
+      // Open Score Summary Modal
+      const variant = getVariantFromTypes(state.selectedTypes);
+      const scoreResult = saveHighScore(state.selectedTopic, variant, state.totalScore);
+      
+      const topicTitles = {
+        addition: 'Addition',
+        subtraction: 'Subtraction',
+        multiplication: 'Multiplication',
+        division: 'Division',
+        bedmas: 'BEDMAS',
+        percentage: 'Percentage',
+        money: 'Money',
+        mix: 'Mix All'
+      };
+
+      summaryTopicName.textContent = topicTitles[state.selectedTopic] || state.selectedTopic;
+      summaryScoreVal.textContent = state.totalScore.toLocaleString();
+      summaryPrevPb.textContent = scoreResult.oldPB.toLocaleString();
+
+      if (scoreResult.isNewPB && state.totalScore > 0) {
+        summaryTitleEl.textContent = '🎉 NEW RECORD! 🎉';
+        summaryPbBanner.classList.remove('hidden');
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.5 }
+        });
+      } else {
+        summaryTitleEl.textContent = 'Game Over';
+        summaryPbBanner.classList.add('hidden');
+      }
+
+      modalSummary.classList.remove('hidden');
+    } else {
+      exitToMenu();
+    }
   } else {
     loadNextQuestion();
   }
