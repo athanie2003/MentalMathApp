@@ -3,6 +3,7 @@ import { generateQuestion } from './mathEngine.js';
 import { calculateChallengeScore } from './scoringEngine.js';
 import { getQuestionTiming } from './gameConfig.js';
 import { sounds } from './audio.js';
+import { getHighScore, saveHighScore, getVariantFromTypes } from './scoreStorage.js';
 
 // DOM Elements & Screens
 const screenMenu = document.getElementById('screen-menu');
@@ -59,7 +60,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
-  selectedTypes: [], // optional add-ons: 'decimals', 'negatives', 'over100'
+  selectedTypes: [], // optional add-ons: 'decimals', 'negatives', 'over100', 'multistep'
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -71,13 +72,14 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.6.2';
+const APP_VERSION = 'v1.7.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
 function init() {
   setupVersionBadge();
   setupEventListeners();
+  renderHighScoresUI();
   registerServiceWorker();
 }
 
@@ -141,6 +143,7 @@ function setupEventListeners() {
       sounds.playClick();
       screenConfig.classList.remove('active');
       screenMenu.classList.add('active');
+      renderHighScoresUI();
     });
   }
 
@@ -238,6 +241,7 @@ function setupCheckboxListeners() {
       chk.addEventListener('change', () => {
         sounds.playClick();
         updateSelectedTypes();
+        renderHighScoresUI();
       });
     }
   });
@@ -258,7 +262,25 @@ function updateSelectedTypes() {
   state.selectedTypes = selected;
 }
 
+function renderHighScoresUI() {
+  const variant = getVariantFromTypes(state.selectedTypes);
+  const cardBadges = document.querySelectorAll('.card-pb-badge');
+
+  cardBadges.forEach(badge => {
+    const topic = badge.dataset.pbTopic;
+    if (state.mode === 'challenge') {
+      const score = getHighScore(topic, variant);
+      badge.textContent = `🏆 ${score.toLocaleString()}`;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  });
+}
+
 function updateMenuUIForMode() {
+  renderHighScoresUI();
+
   if (state.mode === 'challenge') {
     sectionDifficulty.classList.add('hidden');
     cardMixTopic.classList.remove('hidden');
@@ -313,6 +335,7 @@ function exitToMenu() {
   modalFailed.classList.add('hidden');
   screenGame.classList.remove('active');
   screenMenu.classList.add('active');
+  renderHighScoresUI();
 }
 
 function updateLivesDisplay() {
@@ -508,9 +531,23 @@ function handleIncorrectAnswer() {
   modalExplanationText.textContent = state.currentQuestion.hint || 'Review the math calculation step and try the next question!';
 
   if (state.lives <= 0) {
-    modalTitleEl.textContent = state.mode === 'challenge' 
-      ? `Game Over! Final Score: ${state.totalScore.toLocaleString()} 🏆`
-      : 'Game Over 💔';
+    if (state.mode === 'challenge') {
+      const variant = getVariantFromTypes(state.selectedTypes);
+      const scoreResult = saveHighScore(state.selectedTopic, variant, state.totalScore);
+      
+      if (scoreResult.isNewPB && state.totalScore > 0) {
+        modalTitleEl.textContent = `🎉 NEW RECORD! ${state.totalScore.toLocaleString()} 🏆`;
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.5 }
+        });
+      } else {
+        modalTitleEl.textContent = `Game Over! Score: ${state.totalScore.toLocaleString()} 🏆`;
+      }
+    } else {
+      modalTitleEl.textContent = 'Game Over 💔';
+    }
     btnModalOk.textContent = 'Main Menu';
   } else {
     modalTitleEl.textContent = 'Incorrect';
