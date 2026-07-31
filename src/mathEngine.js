@@ -1,4 +1,4 @@
-// Math Question Generator Engine for Addition, Subtraction, Multiplication, Division, BEDMAS, and Percentage
+// Math Question Generator Engine for Addition, Subtraction, Multiplication, Division, BEDMAS, Percentage, and Money
 import { ALL_CATEGORIES } from './gameConfig.js';
 
 function randomInt(min, max) {
@@ -12,9 +12,9 @@ function roundToDecimals(num, decimals = 2) {
 
 /**
  * Main Question Generator
- * @param {string} topic - 'addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage', 'mix'
+ * @param {string} topic - 'addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage', 'money', 'mix'
  * @param {string} difficulty - 'easy', 'medium', 'hard', 'random'
- * @param {string[]} numberTypes - Array of selected types: ['integers', 'decimals', 'negatives'] or ['all']
+ * @param {string[]} numberTypes - Array of selected types: ['integers', 'decimals', 'negatives', 'over100', 'multistep']
  */
 export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['integers']) {
   let targetTopic = topic;
@@ -34,7 +34,7 @@ export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['i
   // Determine active number types
   let activeTypes = [...numberTypes];
   if (activeTypes.includes('all')) {
-    activeTypes = ['integers', 'decimals', 'negatives'];
+    activeTypes = ['integers', 'decimals', 'negatives', 'over100', 'multistep'];
   }
   if (activeTypes.length === 0) {
     activeTypes = ['integers'];
@@ -56,6 +56,8 @@ export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['i
       return generateBEDMAS(targetDifficulty, chosenType);
     case 'percentage':
       return generatePercentage(targetDifficulty, activeTypes);
+    case 'money':
+      return generateMoney(targetDifficulty, activeTypes);
     default:
       return generateAddition(targetDifficulty, chosenType);
   }
@@ -463,5 +465,110 @@ function generatePercentage(difficulty, activeTypes = []) {
     rawTopic: 'percentage',
     difficulty: difficulty,
     hint: `Calculate ${percent}% of ${baseNum}. Hint: ${percent}% = ${percent}/100.`
+  };
+}
+
+function generateMoney(difficulty, activeTypes = []) {
+  const allowDecimals = activeTypes.includes('decimals');
+  const allowMultiStep = activeTypes.includes('multistep');
+
+  const types = ['change', 'tip', 'discount', 'tax'];
+  if (allowMultiStep) types.push('total_bill', 'final_price');
+
+  const chosenScenario = types[Math.floor(Math.random() * types.length)];
+  let expr = '', ans = 0, explanation = '';
+
+  if (chosenScenario === 'change') {
+    const bills = [10, 20, 50, 100];
+    const bill = bills[Math.floor(Math.random() * bills.length)];
+    let cost;
+
+    if (!allowDecimals) {
+      cost = randomInt(1, bill - 1);
+    } else if (difficulty === 'easy') {
+      const cents = [0.25, 0.50, 0.75];
+      cost = randomInt(1, bill - 2) + cents[Math.floor(Math.random() * cents.length)];
+    } else if (difficulty === 'medium') {
+      cost = randomInt(1, bill - 2) + (randomInt(1, 19) * 0.05);
+    } else {
+      cost = randomInt(1, bill - 2) + (randomInt(1, 99) / 100);
+    }
+    cost = roundToDecimals(cost, 2);
+    ans = roundToDecimals(bill - cost, 2);
+    expr = `Change from $${bill} for $${cost.toFixed(2).replace('.00', '')}`;
+    explanation = `Subtract item cost from cash paid: $${bill} − $${cost} = $${ans}`;
+
+  } else if (chosenScenario === 'tip') {
+    const tipPercents = difficulty === 'easy' ? [10, 20, 50] : (difficulty === 'medium' ? [10, 15, 20] : [15, 18, 20, 25]);
+    const p = tipPercents[Math.floor(Math.random() * tipPercents.length)];
+    let billVal;
+
+    if (!allowDecimals) {
+      billVal = randomInt(2, 20) * (p === 15 ? 20 : 10);
+      ans = Math.round((p * billVal) / 100);
+    } else {
+      billVal = randomInt(4, 30) * 5;
+      ans = roundToDecimals((p * billVal) / 100, 2);
+    }
+
+    expr = `${p}% tip on $${billVal}`;
+    explanation = `Calculate ${p}% of $${billVal}: (${p} ÷ 100) × $${billVal} = $${ans}`;
+
+  } else if (chosenScenario === 'discount') {
+    const discPercents = [10, 20, 25, 30, 40, 50];
+    const p = discPercents[Math.floor(Math.random() * discPercents.length)];
+    let originalPrice;
+
+    if (!allowDecimals) {
+      originalPrice = randomInt(2, 20) * 10;
+      ans = Math.round((p * originalPrice) / 100);
+    } else {
+      originalPrice = randomInt(3, 40) * 5;
+      ans = roundToDecimals((p * originalPrice) / 100, 2);
+    }
+
+    expr = `${p}% discount on $${originalPrice}`;
+    explanation = `Calculate discount amount: ${p}% of $${originalPrice} = $${ans}`;
+
+  } else if (chosenScenario === 'tax') {
+    const taxPercents = [5, 10, 15, 20];
+    const p = taxPercents[Math.floor(Math.random() * taxPercents.length)];
+    let price;
+
+    if (!allowDecimals) {
+      price = randomInt(2, 20) * 10;
+      ans = Math.round((p * price) / 100);
+    } else {
+      price = randomInt(3, 40) * 5;
+      ans = roundToDecimals((p * price) / 100, 2);
+    }
+
+    expr = `${p}% tax on $${price}`;
+    explanation = `Calculate tax amount: ${p}% of $${price} = $${ans}`;
+
+  } else if (chosenScenario === 'total_bill') {
+    const p = 15;
+    let billVal = randomInt(2, 10) * 20;
+    const tipVal = (p * billVal) / 100;
+    ans = roundToDecimals(billVal + tipVal, 2);
+    expr = `Total bill for $${billVal} with 15% tip`;
+    explanation = `Tip = 15% of $${billVal} ($${tipVal}). Total = $${billVal} + $${tipVal} = $${ans}`;
+
+  } else {
+    const p = 10;
+    let itemPrice = randomInt(2, 20) * 10;
+    const taxVal = (p * itemPrice) / 100;
+    ans = roundToDecimals(itemPrice + taxVal, 2);
+    expr = `Final price for $${itemPrice} item with 10% tax`;
+    explanation = `Tax = 10% of $${itemPrice} ($${taxVal}). Final Price = $${itemPrice} + $${taxVal} = $${ans}`;
+  }
+
+  return {
+    expression: expr,
+    answer: ans,
+    topic: 'Money',
+    rawTopic: 'money',
+    difficulty: difficulty,
+    hint: explanation
   };
 }

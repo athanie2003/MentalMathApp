@@ -71,7 +71,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.5.1';
+const APP_VERSION = 'v1.6.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -225,6 +225,8 @@ function updateStep2Options() {
   if (!titleOpt2) return;
   if (state.selectedTopic === 'percentage') {
     titleOpt2.textContent = '📈 Include Over 100%';
+  } else if (state.selectedTopic === 'money') {
+    titleOpt2.textContent = '🧾 Include Multi-Step Totals';
   } else {
     titleOpt2.textContent = '➖ Include Negative Numbers';
   }
@@ -247,6 +249,8 @@ function updateSelectedTypes() {
   if (typeOpt2 && typeOpt2.checked) {
     if (state.selectedTopic === 'percentage') {
       selected.push('over100');
+    } else if (state.selectedTopic === 'money') {
+      selected.push('multistep');
     } else {
       selected.push('negatives');
     }
@@ -338,6 +342,7 @@ function loadNextQuestion() {
     division: 'Division',
     bedmas: 'BEDMAS',
     percentage: 'Percentage',
+    money: 'Money',
     mix: 'Mix All'
   };
   

@@ -36,6 +36,11 @@ export const TIMING_CONFIG = {
     easy: { fp: 2.0, zp: 7 },
     medium: { fp: 4.0, zp: 12 },
     hard: { fp: 6.5, zp: 18 }
+  },
+  money: {
+    easy: { fp: 2.5, zp: 8 },
+    medium: { fp: 5.0, zp: 14 },
+    hard: { fp: 8.0, zp: 22 }
   }
 };
 
@@ -44,7 +49,7 @@ export const SCORING_CONFIG = {
   maxStreakMultiplier: 2.0    // Max 2x multiplier at 10 streak
 };
 
-export const ALL_CATEGORIES = ['addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage'];
+export const ALL_CATEGORIES = ['addition', 'subtraction', 'multiplication', 'division', 'bedmas', 'percentage', 'money'];
 
 /**
  * Helper to get timing { fp, zp } for a specific topic and difficulty
