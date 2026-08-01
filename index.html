@@ -24,7 +24,7 @@
           <div>
             <div class="title-with-version">
               <h1>Mental Math</h1>
-              <span class="version-badge" id="version-badge">v1.7.1</span>
+              <span class="version-badge" id="version-badge">v1.8.0</span>
             </div>
             <p class="subtitle">Train your brain speed</p>
           </div>
@@ -175,6 +175,18 @@
           </div>
         </section>
 
+        <!-- HIGH SCORE CARD ON STEP 2 (CHALLENGE MODE ONLY) -->
+        <div id="config-pb-card" class="config-pb-card hidden">
+          <div class="pb-card-left">
+            <div class="pb-card-icon">🏆</div>
+            <div class="pb-card-text">
+              <span class="pb-card-title">Personal Best</span>
+              <span class="pb-card-subtitle" id="pb-card-type-label">🟢 Whole Numbers (Integers)</span>
+            </div>
+          </div>
+          <span class="pb-card-score" id="pb-card-score-val">0</span>
+        </div>
+
         <!-- NUMBER TYPES CHECKBOXES -->
         <section class="section">
           <label class="section-title">Select Number Types</label>
@@ -192,6 +204,14 @@
               <span class="check-box-custom"></span>
               <div class="check-info">
                 <span class="check-title" id="title-opt-2">➖ Include Negative Numbers</span>
+              </div>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" id="type-all" class="type-check" value="all" />
+              <span class="check-box-custom"></span>
+              <div class="check-info">
+                <span class="check-title">🎲 All Types Mixed</span>
               </div>
             </label>
           </div>

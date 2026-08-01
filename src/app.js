@@ -3,7 +3,7 @@ import { generateQuestion } from './mathEngine.js';
 import { calculateChallengeScore } from './scoringEngine.js';
 import { getQuestionTiming } from './gameConfig.js';
 import { sounds } from './audio.js';
-import { getHighScore, saveHighScore, getVariantFromTypes } from './scoreStorage.js';
+import { getHighScore, saveHighScore, getVariantFromTypes, getVariantLabel } from './scoreStorage.js';
 
 // DOM Elements & Screens
 const screenMenu = document.getElementById('screen-menu');
@@ -23,6 +23,11 @@ const diffBtns = document.querySelectorAll('.diff-btn');
 const typeDecimals = document.getElementById('type-decimals');
 const typeOpt2 = document.getElementById('type-opt2');
 const titleOpt2 = document.getElementById('title-opt-2');
+const typeAll = document.getElementById('type-all');
+
+const configPbCard = document.getElementById('config-pb-card');
+const pbCardTypeLabel = document.getElementById('pb-card-type-label');
+const pbCardScoreVal = document.getElementById('pb-card-score-val');
 
 const btnStartPractice = document.getElementById('btn-start-practice');
 const btnStartText = document.getElementById('btn-start-text');
@@ -70,7 +75,7 @@ let state = {
   mode: 'practice', // 'practice' or 'challenge'
   selectedTopic: 'addition',
   selectedDifficulty: 'medium',
-  selectedTypes: [], // optional add-ons: 'decimals', 'negatives', 'over100', 'multistep'
+  selectedTypes: [], // optional add-ons: 'decimals', 'negatives', 'over100', 'multistep', 'all'
   currentQuestion: null,
   userAnswerInput: '',
   lives: 3,
@@ -83,7 +88,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.7.1';
+const APP_VERSION = 'v1.8.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -145,6 +150,7 @@ function setupEventListeners() {
       updateStep2Options();
       screenMenu.classList.remove('active');
       screenConfig.classList.add('active');
+      renderHighScoresUI();
     });
   }
 
@@ -256,10 +262,25 @@ function updateStep2Options() {
 }
 
 function setupCheckboxListeners() {
+  if (typeAll) {
+    typeAll.addEventListener('change', () => {
+      sounds.playClick();
+      if (typeAll.checked) {
+        if (typeDecimals) typeDecimals.checked = false;
+        if (typeOpt2) typeOpt2.checked = false;
+      }
+      updateSelectedTypes();
+      renderHighScoresUI();
+    });
+  }
+
   [typeDecimals, typeOpt2].forEach(chk => {
     if (chk) {
       chk.addEventListener('change', () => {
         sounds.playClick();
+        if (chk.checked && typeAll) {
+          typeAll.checked = false;
+        }
         updateSelectedTypes();
         renderHighScoresUI();
       });
@@ -269,33 +290,56 @@ function setupCheckboxListeners() {
 
 function updateSelectedTypes() {
   const selected = [];
-  if (typeDecimals && typeDecimals.checked) selected.push('decimals');
-  if (typeOpt2 && typeOpt2.checked) {
-    if (state.selectedTopic === 'percentage') {
-      selected.push('over100');
-    } else if (state.selectedTopic === 'money') {
-      selected.push('multistep');
-    } else {
-      selected.push('negatives');
+  if (typeAll && typeAll.checked) {
+    selected.push('all');
+  } else {
+    if (typeDecimals && typeDecimals.checked) selected.push('decimals');
+    if (typeOpt2 && typeOpt2.checked) {
+      if (state.selectedTopic === 'percentage') {
+        selected.push('over100');
+      } else if (state.selectedTopic === 'money') {
+        selected.push('multistep');
+      } else {
+        selected.push('negatives');
+      }
     }
   }
   state.selectedTypes = selected;
 }
 
 function renderHighScoresUI() {
-  const variant = getVariantFromTypes(state.selectedTypes);
+  // Step 1: Topic Skill Cards show Pure Integers High Score
   const cardBadges = document.querySelectorAll('.card-pb-badge');
-
   cardBadges.forEach(badge => {
     const topic = badge.dataset.pbTopic;
     if (state.mode === 'challenge') {
-      const score = getHighScore(topic, variant);
+      const score = getHighScore(topic, 'integers');
       badge.textContent = `🏆 ${score.toLocaleString()}`;
       badge.classList.remove('hidden');
     } else {
       badge.classList.add('hidden');
     }
   });
+
+  // Step 2: High Score Card shows exact score for chosen skill + selected number types
+  if (state.mode === 'challenge' && screenConfig.classList.contains('active')) {
+    const variant = getVariantFromTypes(state.selectedTypes);
+    const score = getHighScore(state.selectedTopic, variant);
+    
+    if (pbCardTypeLabel) {
+      pbCardTypeLabel.textContent = getVariantLabel(variant, state.selectedTopic);
+    }
+    if (pbCardScoreVal) {
+      pbCardScoreVal.textContent = score.toLocaleString();
+    }
+    if (configPbCard) {
+      configPbCard.classList.remove('hidden');
+    }
+  } else {
+    if (configPbCard) {
+      configPbCard.classList.add('hidden');
+    }
+  }
 }
 
 function updateMenuUIForMode() {

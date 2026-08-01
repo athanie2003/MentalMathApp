@@ -1,8 +1,8 @@
-const STORAGE_KEY = 'mental_math_high_scores_v2';
+const STORAGE_KEY = 'mental_math_high_scores_v3';
 
 /**
  * Get all high scores from localStorage
- * Structure: { [topic]: { integers: number, decimals: number, opt2: number, decimals_opt2: number } }
+ * Structure: { [topic]: { integers: number, decimals: number, opt2: number, decimals_opt2: number, all: number } }
  */
 export function getAllHighScores() {
   try {
@@ -16,14 +16,17 @@ export function getAllHighScores() {
 }
 
 /**
- * Map active types array to 4 distinct variant strings:
- * - 'integers': pure whole numbers (no checkboxes selected)
+ * Map active types array to 5 distinct variant strings:
+ * - 'all': All Types Mixed checked
+ * - 'decimals_opt2': both decimals and option 2 enabled
  * - 'decimals': decimals enabled
  * - 'opt2': negatives / over100 / multistep enabled
- * - 'decimals_opt2': both decimals and option 2 enabled
+ * - 'integers': pure whole numbers (no checkboxes selected)
  * @param {string[]} activeTypes
  */
 export function getVariantFromTypes(activeTypes = []) {
+  if (activeTypes.includes('all')) return 'all';
+
   const hasDecimals = activeTypes.includes('decimals');
   const hasOpt2 = activeTypes.includes('negatives') || 
                   activeTypes.includes('over100') || 
@@ -36,9 +39,24 @@ export function getVariantFromTypes(activeTypes = []) {
 }
 
 /**
+ * Human-readable label for a variant
+ */
+export function getVariantLabel(variant = 'integers', topic = 'addition') {
+  if (variant === 'all') return '🎲 All Types Mixed';
+  if (variant === 'decimals_opt2') return '💡 Decimals & Add-ons';
+  if (variant === 'decimals') return '💡 Include Decimals';
+  if (variant === 'opt2') {
+    if (topic === 'percentage') return '📈 Include Over 100%';
+    if (topic === 'money') return '🧾 Multi-Step Totals';
+    return '➖ Include Negatives';
+  }
+  return '🟢 Whole Numbers (Integers)';
+}
+
+/**
  * Get high score for a specific topic and number variant
  * @param {string} topic - e.g. 'addition', 'percentage', 'mix'
- * @param {string} variant - 'integers', 'decimals', 'opt2', or 'decimals_opt2'
+ * @param {string} variant - 'integers', 'decimals', 'opt2', 'decimals_opt2', or 'all'
  */
 export function getHighScore(topic, variant = 'integers') {
   const scores = getAllHighScores();
@@ -51,14 +69,14 @@ export function getHighScore(topic, variant = 'integers') {
 /**
  * Save high score if it beats the existing record
  * @param {string} topic - e.g. 'addition'
- * @param {string} variant - 'integers', 'decimals', 'opt2', or 'decimals_opt2'
+ * @param {string} variant - 'integers', 'decimals', 'opt2', 'decimals_opt2', or 'all'
  * @param {number} newScore
  * @returns {{ isNewPB: boolean, oldPB: number, newPB: number }}
  */
 export function saveHighScore(topic, variant = 'integers', newScore = 0) {
   const scores = getAllHighScores();
   if (!scores[topic]) {
-    scores[topic] = { integers: 0, decimals: 0, opt2: 0, decimals_opt2: 0 };
+    scores[topic] = { integers: 0, decimals: 0, opt2: 0, decimals_opt2: 0, all: 0 };
   }
 
   const currentPB = scores[topic][variant] || 0;
