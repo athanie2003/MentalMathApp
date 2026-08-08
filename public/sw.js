@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mental-math-v1.8.0';
+const CACHE_NAME = 'mental-math-v1.9.0';
 
 // Service Worker Install: Cache main shell
 self.addEventListener('install', (event) => {

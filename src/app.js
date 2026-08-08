@@ -23,7 +23,6 @@ const diffBtns = document.querySelectorAll('.diff-btn');
 const typeDecimals = document.getElementById('type-decimals');
 const typeOpt2 = document.getElementById('type-opt2');
 const titleOpt2 = document.getElementById('title-opt-2');
-const typeAll = document.getElementById('type-all');
 
 const configPbCard = document.getElementById('config-pb-card');
 const pbCardTypeLabel = document.getElementById('pb-card-type-label');
@@ -88,7 +87,7 @@ let state = {
 };
 
 // Version Setup
-const APP_VERSION = 'v1.8.0';
+const APP_VERSION = 'v1.9.0';
 const SHOW_VERSION = true;
 
 // INITIALIZATION
@@ -262,25 +261,10 @@ function updateStep2Options() {
 }
 
 function setupCheckboxListeners() {
-  if (typeAll) {
-    typeAll.addEventListener('change', () => {
-      sounds.playClick();
-      if (typeAll.checked) {
-        if (typeDecimals) typeDecimals.checked = false;
-        if (typeOpt2) typeOpt2.checked = false;
-      }
-      updateSelectedTypes();
-      renderHighScoresUI();
-    });
-  }
-
   [typeDecimals, typeOpt2].forEach(chk => {
     if (chk) {
       chk.addEventListener('change', () => {
         sounds.playClick();
-        if (chk.checked && typeAll) {
-          typeAll.checked = false;
-        }
         updateSelectedTypes();
         renderHighScoresUI();
       });
@@ -290,37 +274,20 @@ function setupCheckboxListeners() {
 
 function updateSelectedTypes() {
   const selected = [];
-  if (typeAll && typeAll.checked) {
-    selected.push('all');
-  } else {
-    if (typeDecimals && typeDecimals.checked) selected.push('decimals');
-    if (typeOpt2 && typeOpt2.checked) {
-      if (state.selectedTopic === 'percentage') {
-        selected.push('over100');
-      } else if (state.selectedTopic === 'money') {
-        selected.push('multistep');
-      } else {
-        selected.push('negatives');
-      }
+  if (typeDecimals && typeDecimals.checked) selected.push('decimals');
+  if (typeOpt2 && typeOpt2.checked) {
+    if (state.selectedTopic === 'percentage') {
+      selected.push('over100');
+    } else if (state.selectedTopic === 'money') {
+      selected.push('multistep');
+    } else {
+      selected.push('negatives');
     }
   }
   state.selectedTypes = selected;
 }
 
 function renderHighScoresUI() {
-  // Step 1: Topic Skill Cards show Pure Integers High Score
-  const cardBadges = document.querySelectorAll('.card-pb-badge');
-  cardBadges.forEach(badge => {
-    const topic = badge.dataset.pbTopic;
-    if (state.mode === 'challenge') {
-      const score = getHighScore(topic, 'integers');
-      badge.textContent = `🏆 ${score.toLocaleString()}`;
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
-    }
-  });
-
   // Step 2: High Score Card shows exact score for chosen skill + selected number types
   if (state.mode === 'challenge' && screenConfig.classList.contains('active')) {
     const variant = getVariantFromTypes(state.selectedTypes);

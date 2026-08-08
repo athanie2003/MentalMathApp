@@ -45,7 +45,12 @@ export function generateQuestion(topic, difficulty = 'medium', numberTypes = ['i
 
   // Determine active number types
   let activeTypes = [...numberTypes];
-  if (activeTypes.includes('all')) {
+  const hasDecimals = activeTypes.includes('decimals');
+  const hasOpt2 = activeTypes.includes('negatives') || 
+                  activeTypes.includes('over100') || 
+                  activeTypes.includes('multistep');
+
+  if (activeTypes.includes('all') || (hasDecimals && hasOpt2)) {
     activeTypes = ['integers', 'decimals', 'negatives', 'over100', 'multistep'];
   }
   if (activeTypes.length === 0) {
